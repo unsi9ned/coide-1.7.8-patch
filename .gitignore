@@ -34,4 +34,5 @@ project.history
 /repo/Others/*
 !/repo/Components/2128_CMSIS_Core
 !/repo/Components/2129_Startup
+!/repo/Components/2130_Arduino_Core
 
