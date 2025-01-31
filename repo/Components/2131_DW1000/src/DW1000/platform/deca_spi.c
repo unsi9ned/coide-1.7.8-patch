@@ -60,7 +60,6 @@ int writetospi
     const uint8 *bodyBuffer
 )
 {
-	static uint8 temp;
 	int i = 0;
 	decaIrqStatus_t stat;
 
@@ -68,7 +67,6 @@ int writetospi
 
     // CS = 0
     PORT->Group[SPIx_CS_PIN >> 5].OUTCLR.reg = SPIx_CS_MASK;
-    PORT->Group[SPIx_CS2_PIN >> 5].OUTCLR.reg = SPIx_CS2_MASK;
 
 	for (i = 0; i < headerLength; i++)
 	{
@@ -78,23 +76,22 @@ int writetospi
 
 		while (SPIx->SPI.INTFLAG.bit.RXC == 0);    // Waiting Complete Reception
 
-		temp = SPIx->SPI.DATA.bit.DATA;             // Reading data
+		SPIx->SPI.DATA.bit.DATA;                   // Reading data
 	}
 
 	for (i = 0; i < bodylength; i++)
 	{
 		while (SPIx->SPI.INTFLAG.bit.DRE == 0);    // Waiting Complete Transmission
 
-		SPIx->SPI.DATA.bit.DATA = bodyBuffer[i]; // Writing data into Data register
+		SPIx->SPI.DATA.bit.DATA = bodyBuffer[i];   // Writing data into Data register
 
 		while (SPIx->SPI.INTFLAG.bit.RXC == 0);    // Waiting Complete Reception
 
-		temp = SPIx->SPI.DATA.bit.DATA;             // Reading data
+		SPIx->SPI.DATA.bit.DATA;                   // Reading data
 	}
 
 	// CS = 1
 	PORT->Group[SPIx_CS_PIN >> 5].OUTSET.reg = SPIx_CS_MASK;
-	PORT->Group[SPIx_CS2_PIN >> 5].OUTSET.reg = SPIx_CS2_MASK;
 
 	decamutexoff(stat) ;
 
@@ -128,7 +125,6 @@ int readfromspi
 
     // CS = 0
     PORT->Group[SPIx_CS_PIN >> 5].OUTCLR.reg = SPIx_CS_MASK;
-    PORT->Group[SPIx_CS2_PIN >> 5].OUTCLR.reg = SPIx_CS2_MASK;
 
 	for (i = 0; i < headerLength; i++)
 	{
@@ -154,7 +150,6 @@ int readfromspi
 
 	// CS = 1
 	PORT->Group[SPIx_CS_PIN >> 5].OUTSET.reg = SPIx_CS_MASK;
-	PORT->Group[SPIx_CS2_PIN >> 5].OUTSET.reg = SPIx_CS2_MASK;
 
     decamutexoff(stat) ;
 

@@ -27,60 +27,6 @@ tGpioMode;
 static uint32 sysTickCounter = 0;
 static void (*decaIrqHandler)() = NULL;
 
-void setup_DW1000RSTnIRQ(int enable)
-{
-#if 0
-    GPIO_InitTypeDef GPIO_InitStructure;
-    EXTI_InitTypeDef EXTI_InitStructure;
-    NVIC_InitTypeDef NVIC_InitStructure;
-
-    if(enable)
-    {
-        // Enable GPIO used as DECA IRQ for interrupt
-        GPIO_InitStructure.GPIO_Pin = DECARSTIRQ;
-        //GPIO_InitStructure.GPIO_Mode =    GPIO_Mode_IPD;  //IRQ pin should be Pull Down to prevent unnecessary EXT IRQ while DW1000 goes to sleep mode
-        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-        GPIO_Init(DECARSTIRQ_GPIO, &GPIO_InitStructure);
-
-        /* Connect EXTI Line to GPIO Pin */
-        GPIO_EXTILineConfig(DECARSTIRQ_EXTI_PORT, DECARSTIRQ_EXTI_PIN);
-
-        /* Configure EXTI line */
-        EXTI_InitStructure.EXTI_Line = DECARSTIRQ_EXTI;
-        EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-        EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;  //MP IRQ polarity is high by default
-        EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-        EXTI_Init(&EXTI_InitStructure);
-
-        /* Set NVIC Grouping to 16 groups of interrupt without sub-grouping */
-        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-
-        /* Enable and set EXTI Interrupt to the lowest priority */
-        NVIC_InitStructure.NVIC_IRQChannel = DECARSTIRQ_EXTI_IRQn;
-        NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 15;
-        NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-        NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-
-        NVIC_Init(&NVIC_InitStructure);
-    }
-    else
-    {
-        //put the pin back to tri-state ... as input
-        GPIO_InitStructure.GPIO_Pin = DW1000_RSTn;
-        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
-        GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-        GPIO_Init(DW1000_RSTn_GPIO, &GPIO_InitStructure);
-
-        /* Configure EXTI line */
-        EXTI_InitStructure.EXTI_Line = DECARSTIRQ_EXTI;
-        EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-        EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;  //MP IRQ polarity is high by default
-        EXTI_InitStructure.EXTI_LineCmd = DISABLE;
-        EXTI_Init(&EXTI_InitStructure);
-    }
-#endif
-}
-
 //------------------------------------------------------------------------------
 // Установка режима работы пина
 //------------------------------------------------------------------------------
@@ -139,7 +85,7 @@ static void gpio_periph_enable(uint32 p, uint8 muxLine)
 	uint32 portGrp = p >> 5;
 	uint32 pin = p % 32;
 
-	volatile uint8 pmux = PORT->Group[portGrp].PMUX[pin >> 1].reg & (0xF << ((pin & 1) * 4));
+	uint8 pmux = PORT->Group[portGrp].PMUX[pin >> 1].reg;
 	pmux |= (muxLine & 0xF) << ((pin & 1) * 4);
 	PORT->Group[portGrp].PMUX[pin >> 1].reg = pmux;
 	// Enable port mux
@@ -198,35 +144,15 @@ int gpio_read(uint32_t ulPin)
 static void gpio_init()
 {
 	// Enable GPIO used as DECA IRQ for interrupt
-#if 0
-	uint32 portGrp = DW1000_IRQ_PIN >> 5;
-	uint32 pin = DW1000_IRQ_PIN % 32;
-	uint32 pinMask = DW1000_IRQ_MASK;
-
-	// Set pin to input mode
-	PORT->Group[portGrp].PINCFG[pin].reg = (uint8)(PORT_PINCFG_INEN);
-	PORT->Group[portGrp].DIRCLR.reg = pinMask;
-
-	portGrp = DW1000_RSTn_PIN >> 5;
-	pin = DW1000_RSTn_PIN % 32;
-	pinMask = DW1000_RSTn_MASK;
-
-	// Set pin to input mode
-	PORT->Group[portGrp].PINCFG[pin].reg = (uint8)(PORT_PINCFG_INEN);
-	PORT->Group[portGrp].DIRCLR.reg = pinMask;
-#else
 	gpio_set_mode(DW1000_IRQ_PIN, IO_INPUT);
 	gpio_set_mode(DW1000_RSTn_PIN, IO_INPUT);
 	gpio_set_mode(USARTx_RX, IO_INPUT_PULLUP);
 	gpio_set_mode(USARTx_TX, IO_OUTPUT);
 	gpio_set_mode(SPIx_CS_PIN, IO_OUTPUT);
-	gpio_set_mode(SPIx_CS2_PIN, IO_OUTPUT);
 	gpio_write(SPIx_CS_PIN, 1);
-	gpio_write(SPIx_CS2_PIN, 1);
 	gpio_set_mode(SPIx_MOSI_PIN, IO_OUTPUT);
 	gpio_set_mode(SPIx_SCK_PIN, IO_OUTPUT);
 	gpio_set_mode(SPIx_MISO_PIN, IO_INPUT_PULLUP);
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -264,27 +190,10 @@ void port_led_toggle()
 //------------------------------------------------------------------------------
 void reset_DW1000(void)
 {
-#if 0
-	uint32 portGrp = DW1000_RSTn_PIN >> 5;
-	uint32 pin = DW1000_RSTn_PIN % 32;
-	uint32 pinMask = DW1000_RSTn_MASK;
-
-	// enable input, to support reading back values, with pullups disabled
-	PORT->Group[portGrp].PINCFG[pin].reg = (uint8) (PORT_PINCFG_INEN);
-
-	// Set pin to output mode
-	PORT->Group[portGrp].DIRSET.reg = pinMask;
-	PORT->Group[portGrp].OUTCLR.reg = pinMask;
-
-	deca_sleep(2);
-
-	PORT->Group[portGrp].DIRCLR.reg = pinMask;
-#else
 	gpio_set_mode(DW1000_RSTn_PIN, IO_OUTPUT);
 	gpio_write(DW1000_RSTn_PIN, 0);
 	deca_sleep(2);
 	gpio_set_mode(DW1000_RSTn_PIN, IO_INPUT);
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -478,32 +387,7 @@ static void usart_init()
 	gpio_periph_enable(USARTx_RX, PORT_PMUX_PMUXE_C_Val);
 	gpio_periph_enable(USARTx_TX, PORT_PMUX_PMUXE_C_Val);
 
-#if 0
-	uint32 sercomIdx;
-	uint8 clockId;
-	IRQn_Type IdNvic;
-
-	sercomIdx = (USARTx - SERCOM0) / 0x400;
-	clockId = GCLK_CLKCTRL_ID_SERCOM0_CORE_Val + sercomIdx;
-	IdNvic = SERCOM0_IRQn + sercomIdx;
-
-	// Setting NVIC
-	NVIC_ClearPendingIRQ(IdNvic);
-	NVIC_SetPriority(IdNvic, ((1<<__NVIC_PRIO_BITS) - 1));
-	NVIC_EnableIRQ(IdNvic);
-
-	// Setting clock
-	// Generic Clock 0 (SERCOMx)
-	// Generic Clock Generator 0 is source
-	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID( clockId ) |
-						GCLK_CLKCTRL_GEN_GCLK0 |
-						GCLK_CLKCTRL_CLKEN;
-
-	// Wait for synchronization
-	while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY);
-#else
 	sercom_init_nvic_clock(USARTx);
-#endif
 
 	// Start the Software Reset
 	USARTx->USART.CTRLA.bit.SWRST = 1;
@@ -606,7 +490,7 @@ static void spi_peripheral_init(void)
 
 	//Setting the CTRLA register
 	SPIx->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_MODE_SPI_MASTER |
-						  SERCOM_SPI_CTRLA_DOPO(SPIx_MOSI_PAD) |
+						  SERCOM_SPI_CTRLA_DOPO(SPIx_MOSI_SCK_PAD) |
 						  SERCOM_SPI_CTRLA_DIPO(SPIx_MISO_PAD) |
 						  0 << SERCOM_SPI_CTRLA_DORD_Pos; //MSB First
 
@@ -620,7 +504,7 @@ static void spi_peripheral_init(void)
 	//Setting the CTRLA register
 	//Rising, sample Falling, change
 	SPIx->SPI.CTRLA.reg |= ( 0 << SERCOM_SPI_CTRLA_CPHA_Pos ) |
-						   ( 1 << SERCOM_SPI_CTRLA_CPOL_Pos );
+						   ( 0 << SERCOM_SPI_CTRLA_CPOL_Pos );
 
 	//Synchronous arithmetic
 	uint16 b = SystemCoreClock / (2 * SPIx_LOW_RATE);

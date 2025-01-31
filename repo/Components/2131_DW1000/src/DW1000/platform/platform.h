@@ -39,24 +39,11 @@ extern "C" {
 #define SPIx_MISO_MUX               MUX_PA12D_SERCOM4_PAD0
 #define SPIx_MOSI_MUX               MUX_PB10D_SERCOM4_PAD2
 
-#define SPIx_SCK_PAD                3
+#define SPIx_MOSI_SCK_PAD           1 //PAD[2,3]
 #define SPIx_MISO_PAD               0
-#define SPIx_MOSI_PAD               2
 
 #define SPIx_HIGH_RATE              (12000000UL)
 #define SPIx_LOW_RATE               (2000000UL)
-
-#define SPIx_CS2_PIN                PIN_PB02
-#define SPIx_CS2_MASK               PORT_PB02
-
-/*
-#define DECARSTIRQ                  GPIO_Pin_0
-#define DECARSTIRQ_GPIO             GPIOA
-#define DECARSTIRQ_EXTI             EXTI_Line0
-#define DECARSTIRQ_EXTI_PORT        GPIO_PortSourceGPIOA
-#define DECARSTIRQ_EXTI_PIN         GPIO_PinSource0
-#define DECARSTIRQ_EXTI_IRQn        EXTI0_IRQn
-*/
 
 #define DW1000_RSTn_PIN             PIN_PA14
 #define DW1000_RSTn_MASK            PORT_PA14
@@ -135,7 +122,6 @@ void spi_set_rate_high (void);
 
 uint32 portGetTickCount(void);
 void reset_DW1000(void);
-void setup_DW1000RSTnIRQ(int enable);
 void port_led_write(int enable);
 void port_led_toggle();
 
