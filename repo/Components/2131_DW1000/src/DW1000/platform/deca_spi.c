@@ -41,11 +41,6 @@ int openspi(/*SPI_TypeDef* SPIx*/)
  */
 int closespi(void)
 {
-#if 0
-	while (port_SPIx_busy_sending()); //wait for tx buffer to empty
-
-	port_SPIx_disable();
-#endif
 	return 0;
 
 } // end closespi()
@@ -65,36 +60,43 @@ int writetospi
     const uint8 *bodyBuffer
 )
 {
-
-	int i=0;
-
-    decaIrqStatus_t  stat ;
+	static uint8 temp;
+	int i = 0;
+	decaIrqStatus_t stat;
 
     stat = decamutexon() ;
-#if 0
-    SPIx_CS_GPIO->BRR = SPIx_CS;
 
-    for(i=0; i<headerLength; i++)
-    {
-    	SPIx->DR = headerBuffer[i];
+    // CS = 0
+    PORT->Group[SPIx_CS_PIN >> 5].OUTCLR.reg = SPIx_CS_MASK;
+    PORT->Group[SPIx_CS2_PIN >> 5].OUTCLR.reg = SPIx_CS2_MASK;
 
-    	while ((SPIx->SR & SPI_I2S_FLAG_RXNE) == (uint16_t)RESET);
+	for (i = 0; i < headerLength; i++)
+	{
+		while (SPIx->SPI.INTFLAG.bit.DRE == 0);    // Waiting Complete Transmission
 
-    	SPIx->DR ;
-    }
+		SPIx->SPI.DATA.bit.DATA = headerBuffer[i]; // Writing data into Data register
 
-    for(i=0; i<bodylength; i++)
-    {
-     	SPIx->DR = bodyBuffer[i];
+		while (SPIx->SPI.INTFLAG.bit.RXC == 0);    // Waiting Complete Reception
 
-    	while((SPIx->SR & SPI_I2S_FLAG_RXNE) == (uint16_t)RESET);
-
-		SPIx->DR ;
+		temp = SPIx->SPI.DATA.bit.DATA;             // Reading data
 	}
 
-    SPIx_CS_GPIO->BSRR = SPIx_CS;
-#endif
-    decamutexoff(stat) ;
+	for (i = 0; i < bodylength; i++)
+	{
+		while (SPIx->SPI.INTFLAG.bit.DRE == 0);    // Waiting Complete Transmission
+
+		SPIx->SPI.DATA.bit.DATA = bodyBuffer[i]; // Writing data into Data register
+
+		while (SPIx->SPI.INTFLAG.bit.RXC == 0);    // Waiting Complete Reception
+
+		temp = SPIx->SPI.DATA.bit.DATA;             // Reading data
+	}
+
+	// CS = 1
+	PORT->Group[SPIx_CS_PIN >> 5].OUTSET.reg = SPIx_CS_MASK;
+	PORT->Group[SPIx_CS2_PIN >> 5].OUTSET.reg = SPIx_CS2_MASK;
+
+	decamutexoff(stat) ;
 
     return 0;
 } // end writetospi()
@@ -123,33 +125,37 @@ int readfromspi
     decaIrqStatus_t  stat ;
 
     stat = decamutexon() ;
-#if 0
-    /* Wait for SPIx Tx buffer empty */
-    //while (port_SPIx_busy_sending());
 
-    SPIx_CS_GPIO->BRR = SPIx_CS;
+    // CS = 0
+    PORT->Group[SPIx_CS_PIN >> 5].OUTCLR.reg = SPIx_CS_MASK;
+    PORT->Group[SPIx_CS2_PIN >> 5].OUTCLR.reg = SPIx_CS2_MASK;
 
-    for(i=0; i<headerLength; i++)
-    {
-    	SPIx->DR = headerBuffer[i];
+	for (i = 0; i < headerLength; i++)
+	{
+		while (SPIx->SPI.INTFLAG.bit.DRE == 0);    // Waiting Complete Transmission
 
-     	//while((SPIx->SR & SPI_I2S_FLAG_RXNE) == (uint16_t)RESET);
-			while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
+		SPIx->SPI.DATA.bit.DATA = headerBuffer[i]; // Writing data into Data register
 
-     	readBuffer[0] = SPIx->DR ; // Dummy read as we write the header
-    }
+		while (SPIx->SPI.INTFLAG.bit.RXC == 0);    // Waiting Complete Reception
 
-    for(i=0; i<readlength; i++)
-    {
-    	SPIx->DR = 0;  // Dummy write as we read the message body
+		readBuffer[0] = SPIx->SPI.DATA.bit.DATA;             // Reading data
+	}
 
-    	while((SPIx->SR & SPI_I2S_FLAG_RXNE) == (uint16_t)RESET);
- 
-	   	readBuffer[i] = SPIx->DR ;//port_SPIx_receive_data(); //this clears RXNE bit
-    }
+	for(i=0; i<readlength; i++)
+	{
+		while (SPIx->SPI.INTFLAG.bit.DRE == 0);    // Waiting Complete Transmission
 
-    SPIx_CS_GPIO->BSRR = SPIx_CS;
-#endif
+		SPIx->SPI.DATA.bit.DATA = 0;             // Dummy write as we read the message body
+
+		while (SPIx->SPI.INTFLAG.bit.RXC == 0);
+
+		readBuffer[i] = SPIx->SPI.DATA.bit.DATA; //port_SPIx_receive_data(); //this clears RXNE bit
+	}
+
+	// CS = 1
+	PORT->Group[SPIx_CS_PIN >> 5].OUTSET.reg = SPIx_CS_MASK;
+	PORT->Group[SPIx_CS2_PIN >> 5].OUTSET.reg = SPIx_CS2_MASK;
+
     decamutexoff(stat) ;
 
     return 0;

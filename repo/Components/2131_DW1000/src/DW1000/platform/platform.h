@@ -28,18 +28,28 @@ extern "C" {
 #define CLOCKS_PER_SEC              1000
 #endif
 
-#define SPIx						SPI1
-#define SPIx_GPIO					GPIOA
-#define SPIx_CS						GPIO_Pin_4
-#define SPIx_CS_GPIO				GPIOA
-#define SPIx_SCK					GPIO_Pin_5
-#define SPIx_MISO					GPIO_Pin_6
-#define SPIx_MOSI					GPIO_Pin_7
+#define SPIx                        SERCOM4
+#define SPIx_CS_PIN                 PIN_PA08
+#define SPIx_CS_MASK                PORT_PA08
+#define SPIx_SCK_PIN                PIN_PB11
+#define SPIx_MISO_PIN               PIN_PA12
+#define SPIx_MOSI_PIN               PIN_PB10
 
-#define DW1000_RSTn                 GPIO_Pin_12
-#define DW1000_RSTn_GPIO            GPIOB
+#define SPIx_SCK_MUX                MUX_PB11D_SERCOM4_PAD3
+#define SPIx_MISO_MUX               MUX_PA12D_SERCOM4_PAD0
+#define SPIx_MOSI_MUX               MUX_PB10D_SERCOM4_PAD2
 
-	/*
+#define SPIx_SCK_PAD                3
+#define SPIx_MISO_PAD               0
+#define SPIx_MOSI_PAD               2
+
+#define SPIx_HIGH_RATE              (12000000UL)
+#define SPIx_LOW_RATE               (2000000UL)
+
+#define SPIx_CS2_PIN                PIN_PB02
+#define SPIx_CS2_MASK               PORT_PB02
+
+/*
 #define DECARSTIRQ                  GPIO_Pin_0
 #define DECARSTIRQ_GPIO             GPIOA
 #define DECARSTIRQ_EXTI             EXTI_Line0
@@ -47,6 +57,9 @@ extern "C" {
 #define DECARSTIRQ_EXTI_PIN         GPIO_PinSource0
 #define DECARSTIRQ_EXTI_IRQn        EXTI0_IRQn
 */
+
+#define DW1000_RSTn_PIN             PIN_PA14
+#define DW1000_RSTn_MASK            PORT_PA14
 
 #define DW1000_IRQ_PIN              PIN_PA09
 #define DW1000_IRQ_MASK             PORT_PA09
@@ -58,6 +71,9 @@ extern "C" {
 #define USARTx_TX                   PIN_PA10         //PAD[2]
 #define USARTx_RX                   PIN_PA11         //PAD[3]
 #define USARTx_IRQn                 SERCOM0_IRQn
+
+#define USER_LED_PIN                PIN_PB23
+#define USER_LED_POLARITY           0
 
 
 #define port_GET_stack_pointer()	__get_MSP()
@@ -120,6 +136,8 @@ void spi_set_rate_high (void);
 uint32 portGetTickCount(void);
 void reset_DW1000(void);
 void setup_DW1000RSTnIRQ(int enable);
+void port_led_write(int enable);
+void port_led_toggle();
 
 #ifdef __cplusplus
 }
