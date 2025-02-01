@@ -52,6 +52,7 @@ extern "C" {
 #define DW1000_IRQ_MASK             PORT_PA09
 #define DW1000_IRQ_EIC_IN           PIN_PA09A_EIC_EXTINT9
 #define DW1000_IRQ_EIC_MASK         PORT_PA09A_EIC_EXTINT9
+#define DW1000_IRQ_MUX              MUX_PA09A_EIC_EXTINT9
 
 
 #define USARTx                      SERCOM0

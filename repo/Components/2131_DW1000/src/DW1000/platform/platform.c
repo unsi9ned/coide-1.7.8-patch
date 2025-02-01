@@ -316,6 +316,7 @@ static void interrupt_init()
 	EIC->CTRL.bit.ENABLE = 1;
 	while (EIC->STATUS.bit.SYNCBUSY == 1) { }
 
+	gpio_periph_enable(DW1000_IRQ_PIN, DW1000_IRQ_MUX);
 	port_EnableEXT_IRQ();
 }
 
