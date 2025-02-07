@@ -11,6 +11,8 @@
  * @author DecaWave
  */
 #include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 #include "deca_sleep.h"
 #include "deca_device_api.h"
 #include "platform.h"
@@ -23,6 +25,16 @@ typedef enum
 	IO_INPUT_PULLDOWN = (0x3)
 }
 tGpioMode;
+
+#if DW1000_USE_DMA
+// DMA descriptor list entry point (and writeback buffer) per channel
+__attribute__((__aligned__(16))) static DmacDescriptor ///< 128 bit alignment
+    _descriptor[DMAC_CH_NUM] SECTION_DMAC_DESCRIPTOR,  ///< Descriptor table
+    _writeback[DMAC_CH_NUM] SECTION_DMAC_DESCRIPTOR;   ///< Writeback table
+
+DmacDescriptor  *spiReadDescriptor   = NULL;  // List entry point
+DmacDescriptor  *spiWriteDescriptor  = NULL;
+#endif
 
 static uint32 sysTickCounter = 0;
 static void (*decaIrqHandler)() = NULL;
@@ -521,6 +533,79 @@ static void spi_peripheral_init(void)
 	{
 		//Waiting then enable bit from SYNCBUSY is equal to 0;
 	}
+#if DW1000_USE_DMA
+	// -------------------- DMA Initialize clocks ------------------------------
+	uint32_t sercomIdx = ((uint32)SPIx - (uint32)SERCOM0) / 0x400UL;
+
+	PM->AHBMASK.bit.DMAC_ = 1;
+	PM->APBBMASK.bit.DMAC_ = 1;
+
+	DMAC->CTRL.bit.DMAENABLE = 0; // Disable DMA controller
+	DMAC->CTRL.bit.SWRST = 1;     // Perform software reset
+
+	// Initialize descriptor list addresses
+	DMAC->BASEADDR.bit.BASEADDR = (uint32_t)_descriptor;
+	DMAC->WRBADDR.bit.WRBADDR = (uint32_t)_writeback;
+	memset(_descriptor, 0, sizeof(_descriptor));
+	memset(_writeback, 0, sizeof(_writeback));
+
+	// Re-enable DMA controller with all priority levels
+	DMAC->CTRL.reg = DMAC_CTRL_DMAENABLE | DMAC_CTRL_LVLEN(0xF);
+
+	// -------------------- DMA Rx channel -------------------------------------
+	// Reset the allocated channel
+	DMAC->CHID.bit.ID = SPIx_DMA_RX_CH;
+	DMAC->CHCTRLA.bit.ENABLE = 0;
+	DMAC->CHCTRLA.bit.SWRST = 1;
+
+	// Clear software trigger
+	DMAC->SWTRIGCTRL.reg &= ~(1 << SPIx_DMA_RX_CH);
+
+	// Configure default behaviors
+	DMAC->CHCTRLB.bit.LVL = 0;
+	DMAC->CHCTRLB.bit.TRIGSRC = SERCOM0_DMAC_ID_RX + sercomIdx * 2;
+	DMAC->CHCTRLB.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;
+
+	spiReadDescriptor = &_descriptor[SPIx_DMA_RX_CH];
+	spiReadDescriptor->BTCTRL.bit.VALID = true;
+	spiReadDescriptor->BTCTRL.bit.EVOSEL = 0;          // Event generation disabled
+	spiReadDescriptor->BTCTRL.bit.BLOCKACT = 0;        // No action after block tx
+	spiReadDescriptor->BTCTRL.bit.BEATSIZE = 0;        // 8-bit bus transfer
+	spiReadDescriptor->BTCTRL.bit.SRCINC = 0;          // Don't increment source address
+	spiReadDescriptor->BTCTRL.bit.DSTINC = 1;          // Increment dest address
+	spiReadDescriptor->BTCTRL.bit.STEPSEL = 0;
+	spiReadDescriptor->BTCTRL.bit.STEPSIZE = 0;
+	spiReadDescriptor->BTCNT.reg = 0;                  // Count (set later)
+	spiReadDescriptor->SRCADDR.reg = (uint32_t)&SPIx->SPI.DATA.reg;
+	spiReadDescriptor->DSTADDR.reg = (uint32_t)NULL;   // Dest address (set later)
+
+	// -------------------- DMA Tx channel -------------------------------------
+	// Reset the allocated channel
+	DMAC->CHID.bit.ID = SPIx_DMA_TX_CH;
+	DMAC->CHCTRLA.bit.ENABLE = 0;
+	DMAC->CHCTRLA.bit.SWRST = 1;
+
+	// Clear software trigger
+	DMAC->SWTRIGCTRL.reg &= ~(1 << SPIx_DMA_TX_CH);
+
+	// Configure default behaviors
+	DMAC->CHCTRLB.bit.LVL = 0;
+	DMAC->CHCTRLB.bit.TRIGSRC = SERCOM0_DMAC_ID_TX + sercomIdx * 2;
+	DMAC->CHCTRLB.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val; //Триггер по передаче 8 бит
+
+	spiWriteDescriptor = &_descriptor[SPIx_DMA_TX_CH];
+	spiWriteDescriptor->BTCTRL.bit.VALID = true;
+	spiWriteDescriptor->BTCTRL.bit.EVOSEL = 0;          // Event generation disabled
+	spiWriteDescriptor->BTCTRL.bit.BLOCKACT = 0;        // No action after block tx
+	spiWriteDescriptor->BTCTRL.bit.BEATSIZE = 0;        // 8-bit bus transfer
+	spiWriteDescriptor->BTCTRL.bit.SRCINC = 1;          // Don't increment source address
+	spiWriteDescriptor->BTCTRL.bit.DSTINC = 0;          // Increment dest address
+	spiWriteDescriptor->BTCTRL.bit.STEPSEL = 0;
+	spiWriteDescriptor->BTCTRL.bit.STEPSIZE = 0;
+	spiWriteDescriptor->BTCNT.reg = 0;                  // Count (set later)
+	spiWriteDescriptor->SRCADDR.reg = (uint32_t)NULL;   // Source address (set later)
+	spiWriteDescriptor->DSTADDR.reg = (uint32_t)&SPIx->SPI.DATA.reg;
+#endif
 }
 
 //------------------------------------------------------------------------------

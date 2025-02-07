@@ -28,12 +28,21 @@ extern "C" {
 #define CLOCKS_PER_SEC              1000
 #endif
 
+#ifndef DW1000_USE_DMA
+#define DW1000_USE_DMA              1
+#endif
+
 #define SPIx                        SERCOM4
 #define SPIx_CS_PIN                 PIN_PA08
 #define SPIx_CS_MASK                PORT_PA08
 #define SPIx_SCK_PIN                PIN_PB11
 #define SPIx_MISO_PIN               PIN_PA12
 #define SPIx_MOSI_PIN               PIN_PB10
+
+#if DW1000_USE_DMA
+#define SPIx_DMA_RX_CH              0
+#define SPIx_DMA_TX_CH              1
+#endif
 
 #define SPIx_SCK_MUX                MUX_PB11D_SERCOM4_PAD3
 #define SPIx_MISO_MUX               MUX_PA12D_SERCOM4_PAD0
