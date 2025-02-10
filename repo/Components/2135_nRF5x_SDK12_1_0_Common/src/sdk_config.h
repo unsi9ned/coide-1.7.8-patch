@@ -2993,8 +2993,10 @@
 
 // <e> UART_ENABLED - nrf_drv_uart - UART/UARTE peripheral driver
 //==========================================================
-#ifndef UART_ENABLED
+#ifndef SDK_UART_ENABLED
 #define UART_ENABLED 0
+#else
+#define UART_ENABLED 1
 #endif
 // <o> UART_DEFAULT_CONFIG_HWFC  - Hardware Flow Control
  
@@ -3076,7 +3078,9 @@
 // <q> UART0_CONFIG_USE_EASY_DMA  - Default setting for using EasyDMA
  
 
-#ifndef UART0_CONFIG_USE_EASY_DMA
+#ifndef SDK_UART0_CONFIG_USE_EASY_DMA
+#define UART0_CONFIG_USE_EASY_DMA 0
+#else
 #define UART0_CONFIG_USE_EASY_DMA 1
 #endif
 
@@ -3303,8 +3307,10 @@
 
 // <e> APP_UART_ENABLED - app_uart - UART driver
 //==========================================================
-#ifndef APP_UART_ENABLED
+#ifndef SDK_APP_UART_ENABLED
 #define APP_UART_ENABLED 0
+#else
+#define APP_UART_ENABLED 1
 #endif
 // <o> APP_UART_DRIVER_INSTANCE  - UART instance used
  
