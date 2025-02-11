@@ -1,0 +1,521 @@
+
+bin/NRF52832_512.elf:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000000 <BreakHere>:
+ */
+#if (defined (__GNUC__)) /*------------------ GNU Compiler ---------------------*/
+void BreakHere(int status) __attribute__( ( naked ) );
+void BreakHere(int status)
+{
+  __asm volatile ("BKPT #0 \n\t"  );
+   0:	be00      	bkpt	0x0000
+   2:	bf00      	nop
+
+00000004 <ExecFunction>:
+ */
+int ExecFunction (FlashAlgoFnc algoFnc,
+				  unsigned long parameter0,
+				  unsigned long parameter1,
+				  unsigned long parameter2)
+{
+   4:	b538      	push	{r3, r4, r5, lr}
+   6:	460d      	mov	r5, r1
+   8:	4604      	mov	r4, r0
+	 int retval;
+	 retval = algoFnc(parameter0,parameter1,parameter2);
+   a:	4611      	mov	r1, r2
+   c:	4628      	mov	r0, r5
+   e:	461a      	mov	r2, r3
+  10:	47a0      	blx	r4
+	 BreakHere(retval);
+  12:	f7ff fff5 	bl	0 <BreakHere>
+	 
+	 return (retval);
+}
+  16:	bd38      	pop	{r3, r4, r5, pc}
+
+00000018 <FlashInit>:
+int FlashInit(unsigned long baseAddr,
+              unsigned long clk,
+              unsigned long operateFuc)
+{
+	// Включаем режим чтения памяти
+	NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Ren;
+  18:	4a04      	ldr	r2, [pc, #16]	; (2c <FlashInit+0x14>)
+  1a:	2300      	movs	r3, #0
+  1c:	f8c2 3504 	str.w	r3, [r2, #1284]	; 0x504
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  20:	f8d2 3400 	ldr.w	r3, [r2, #1024]	; 0x400
+  24:	2b00      	cmp	r3, #0
+  26:	d0fb      	beq.n	20 <FlashInit+0x8>
+	{
+	}
+
+	return (0);
+}
+  28:	2000      	movs	r0, #0
+  2a:	4770      	bx	lr
+  2c:	4001e000 	.word	0x4001e000
+
+00000030 <FlashUnInit>:
+ *******************************************************************************
+ */
+int FlashUnInit(unsigned long operateFuc)
+{
+	// Включаем режим чтения памяти
+	NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Ren;
+  30:	4a04      	ldr	r2, [pc, #16]	; (44 <FlashUnInit+0x14>)
+  32:	2300      	movs	r3, #0
+  34:	f8c2 3504 	str.w	r3, [r2, #1284]	; 0x504
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  38:	f8d2 3400 	ldr.w	r3, [r2, #1024]	; 0x400
+  3c:	2b00      	cmp	r3, #0
+  3e:	d0fb      	beq.n	38 <FlashUnInit+0x8>
+	{
+	}
+
+	return (0);
+}
+  40:	2000      	movs	r0, #0
+  42:	4770      	bx	lr
+  44:	4001e000 	.word	0x4001e000
+
+00000048 <FlashEraseChip>:
+ *******************************************************************************
+ */
+int FlashEraseChip(void)
+{
+	// Enable erase.
+	NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Een;
+  48:	490d      	ldr	r1, [pc, #52]	; (80 <FlashEraseChip+0x38>)
+  4a:	2302      	movs	r3, #2
+  4c:	f8c1 3504 	str.w	r3, [r1, #1284]	; 0x504
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  50:	f8d1 2400 	ldr.w	r2, [r1, #1024]	; 0x400
+  54:	4b0a      	ldr	r3, [pc, #40]	; (80 <FlashEraseChip+0x38>)
+  56:	2a00      	cmp	r2, #0
+  58:	d0fa      	beq.n	50 <FlashEraseChip+0x8>
+	{
+	}
+
+	// Erase the page
+	NRF_NVMC->ERASEALL = NVMC_ERASEALL_ERASEALL_Erase;
+  5a:	2201      	movs	r2, #1
+  5c:	f8c3 250c 	str.w	r2, [r3, #1292]	; 0x50c
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  60:	461a      	mov	r2, r3
+  62:	f8d2 1400 	ldr.w	r1, [r2, #1024]	; 0x400
+  66:	4b06      	ldr	r3, [pc, #24]	; (80 <FlashEraseChip+0x38>)
+  68:	2900      	cmp	r1, #0
+  6a:	d0fa      	beq.n	62 <FlashEraseChip+0x1a>
+	{
+	}
+
+	NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Ren;
+  6c:	2200      	movs	r2, #0
+  6e:	f8c3 2504 	str.w	r2, [r3, #1284]	; 0x504
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  72:	f8d3 2400 	ldr.w	r2, [r3, #1024]	; 0x400
+  76:	2a00      	cmp	r2, #0
+  78:	d0fb      	beq.n	72 <FlashEraseChip+0x2a>
+	{
+	}
+
+	return (0);
+}
+  7a:	2000      	movs	r0, #0
+  7c:	4770      	bx	lr
+  7e:	bf00      	nop
+  80:	4001e000 	.word	0x4001e000
+
+00000084 <FlashEraseSector>:
+int FlashEraseSector(unsigned long sectorAddr)
+{
+	sectorAddr = (sectorAddr + 3) & ~0x3UL;
+
+    // Enable erase.
+    NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Een;
+  84:	490e      	ldr	r1, [pc, #56]	; (c0 <FlashEraseSector+0x3c>)
+ * @note 
+ *******************************************************************************
+ */
+int FlashEraseSector(unsigned long sectorAddr)
+{
+	sectorAddr = (sectorAddr + 3) & ~0x3UL;
+  86:	3003      	adds	r0, #3
+
+    // Enable erase.
+    NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Een;
+  88:	2302      	movs	r3, #2
+ * @note 
+ *******************************************************************************
+ */
+int FlashEraseSector(unsigned long sectorAddr)
+{
+	sectorAddr = (sectorAddr + 3) & ~0x3UL;
+  8a:	f020 0003 	bic.w	r0, r0, #3
+
+    // Enable erase.
+    NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Een;
+  8e:	f8c1 3504 	str.w	r3, [r1, #1284]	; 0x504
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  92:	f8d1 2400 	ldr.w	r2, [r1, #1024]	; 0x400
+  96:	4b0a      	ldr	r3, [pc, #40]	; (c0 <FlashEraseSector+0x3c>)
+  98:	2a00      	cmp	r2, #0
+  9a:	d0fa      	beq.n	92 <FlashEraseSector+0xe>
+    {
+    }
+
+    // Erase the page
+    NRF_NVMC->ERASEPAGE = sectorAddr;
+  9c:	f8c3 0508 	str.w	r0, [r3, #1288]	; 0x508
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  a0:	461a      	mov	r2, r3
+  a2:	f8d2 1400 	ldr.w	r1, [r2, #1024]	; 0x400
+  a6:	4b06      	ldr	r3, [pc, #24]	; (c0 <FlashEraseSector+0x3c>)
+  a8:	2900      	cmp	r1, #0
+  aa:	d0fa      	beq.n	a2 <FlashEraseSector+0x1e>
+    {
+    }
+
+    NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Ren;
+  ac:	2200      	movs	r2, #0
+  ae:	f8c3 2504 	str.w	r2, [r3, #1284]	; 0x504
+    while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  b2:	f8d3 2400 	ldr.w	r2, [r3, #1024]	; 0x400
+  b6:	2a00      	cmp	r2, #0
+  b8:	d0fb      	beq.n	b2 <FlashEraseSector+0x2e>
+    {
+    }
+
+	return 0;
+}
+  ba:	2000      	movs	r0, #0
+  bc:	4770      	bx	lr
+  be:	bf00      	nop
+  c0:	4001e000 	.word	0x4001e000
+
+000000c4 <nrf_nvmc_write_byte>:
+
+void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
+{
+  c4:	b430      	push	{r4, r5}
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+  c6:	f020 0403 	bic.w	r4, r0, #3
+	return 0;
+}
+
+void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
+{
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+  ca:	f000 0003 	and.w	r0, r0, #3
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+  ce:	6823      	ldr	r3, [r4, #0]
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+
+	// Enable write.
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+  d0:	4a0d      	ldr	r2, [pc, #52]	; (108 <nrf_nvmc_write_byte+0x44>)
+
+void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
+{
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+  d2:	00c0      	lsls	r0, r0, #3
+  d4:	25ff      	movs	r5, #255	; 0xff
+  d6:	4085      	lsls	r5, r0
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+  d8:	fa01 f000 	lsl.w	r0, r1, r0
+
+void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
+{
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+  dc:	ea23 0105 	bic.w	r1, r3, r5
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+
+	// Enable write.
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+  e0:	2301      	movs	r3, #1
+{
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+  e2:	4401      	add	r1, r0
+
+	// Enable write.
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+  e4:	f8c2 3504 	str.w	r3, [r2, #1284]	; 0x504
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  e8:	f8d2 3400 	ldr.w	r3, [r2, #1024]	; 0x400
+  ec:	2b00      	cmp	r3, #0
+  ee:	d0fb      	beq.n	e8 <nrf_nvmc_write_byte+0x24>
+	{
+	}
+
+	*(uint32_t*) address32 = value32;
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  f0:	4805      	ldr	r0, [pc, #20]	; (108 <nrf_nvmc_write_byte+0x44>)
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+	{
+	}
+
+	*(uint32_t*) address32 = value32;
+  f2:	6021      	str	r1, [r4, #0]
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+  f4:	f8d0 3400 	ldr.w	r3, [r0, #1024]	; 0x400
+  f8:	4a03      	ldr	r2, [pc, #12]	; (108 <nrf_nvmc_write_byte+0x44>)
+  fa:	2b00      	cmp	r3, #0
+  fc:	d0fa      	beq.n	f4 <nrf_nvmc_write_byte+0x30>
+	{
+	}
+
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+  fe:	2300      	movs	r3, #0
+ 100:	f8c2 3504 	str.w	r3, [r2, #1284]	; 0x504
+	{
+	}
+}
+ 104:	bc30      	pop	{r4, r5}
+ 106:	4770      	bx	lr
+ 108:	4001e000 	.word	0x4001e000
+
+0000010c <FlashProgramPage>:
+                     unsigned long size,
+                     unsigned char *buf)
+{
+	unsigned long i;
+
+	for (i = 0; i < size; i++)
+ 10c:	b371      	cbz	r1, 16c <FlashProgramPage+0x60>
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+
+	// Enable write.
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+ 10e:	4b18      	ldr	r3, [pc, #96]	; (170 <FlashProgramPage+0x64>)
+ *******************************************************************************
+ */
+int FlashProgramPage(unsigned long pageAddr,
+                     unsigned long size,
+                     unsigned char *buf)
+{
+ 110:	e92d 4df0 	stmdb	sp!, {r4, r5, r6, r7, r8, sl, fp, lr}
+
+void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
+{
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+ 114:	f04f 0cff 	mov.w	ip, #255	; 0xff
+                     unsigned long size,
+                     unsigned char *buf)
+{
+	unsigned long i;
+
+	for (i = 0; i < size; i++)
+ 118:	4614      	mov	r4, r2
+ 11a:	1855      	adds	r5, r2, r1
+ 11c:	1a86      	subs	r6, r0, r2
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+
+	// Enable write.
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+ 11e:	4698      	mov	r8, r3
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+
+	// Enable write.
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+ 120:	f04f 0e01 	mov.w	lr, #1
+	*(uint32_t*) address32 = value32;
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+	{
+	}
+
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+ 124:	2700      	movs	r7, #0
+ 126:	1931      	adds	r1, r6, r4
+	return 0;
+}
+
+void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
+{
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+ 128:	f001 0a03 	and.w	sl, r1, #3
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+ 12c:	ea21 010a 	bic.w	r1, r1, sl
+{
+	unsigned long i;
+
+	for (i = 0; i < size; i++)
+	{
+		nrf_nvmc_write_byte(pageAddr + i, buf[i]);
+ 130:	f814 0b01 	ldrb.w	r0, [r4], #1
+
+void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
+{
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+ 134:	680a      	ldr	r2, [r1, #0]
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+
+	// Enable write.
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+ 136:	f8c3 e504 	str.w	lr, [r3, #1284]	; 0x504
+
+void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
+{
+	uint32_t byte_shift = address & (uint32_t) 0x03;
+	uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+	uint32_t value32 = (*(uint32_t*) address32 & ~((uint32_t) 0xFF << (byte_shift << (uint32_t) 3)));
+ 13a:	ea4f 0aca 	mov.w	sl, sl, lsl #3
+ 13e:	fa0c fb0a 	lsl.w	fp, ip, sl
+ 142:	ea22 020b 	bic.w	r2, r2, fp
+
+	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
+ 146:	fa00 f00a 	lsl.w	r0, r0, sl
+ 14a:	4410      	add	r0, r2
+
+	// Enable write.
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+ 14c:	f8d3 2400 	ldr.w	r2, [r3, #1024]	; 0x400
+ 150:	2a00      	cmp	r2, #0
+ 152:	d0fb      	beq.n	14c <FlashProgramPage+0x40>
+	{
+	}
+
+	*(uint32_t*) address32 = value32;
+ 154:	6008      	str	r0, [r1, #0]
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+ 156:	f8d3 2400 	ldr.w	r2, [r3, #1024]	; 0x400
+ 15a:	2a00      	cmp	r2, #0
+ 15c:	d0fb      	beq.n	156 <FlashProgramPage+0x4a>
+                     unsigned long size,
+                     unsigned char *buf)
+{
+	unsigned long i;
+
+	for (i = 0; i < size; i++)
+ 15e:	42a5      	cmp	r5, r4
+	*(uint32_t*) address32 = value32;
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
+	{
+	}
+
+	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+ 160:	f8c8 7504 	str.w	r7, [r8, #1284]	; 0x504
+                     unsigned long size,
+                     unsigned char *buf)
+{
+	unsigned long i;
+
+	for (i = 0; i < size; i++)
+ 164:	d1df      	bne.n	126 <FlashProgramPage+0x1a>
+	{
+		nrf_nvmc_write_byte(pageAddr + i, buf[i]);
+	}
+
+	return (0);
+}
+ 166:	2000      	movs	r0, #0
+ 168:	e8bd 8df0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, sl, fp, pc}
+ 16c:	2000      	movs	r0, #0
+ 16e:	4770      	bx	lr
+ 170:	4001e000 	.word	0x4001e000
+
+00000174 <FlashVerify>:
+{
+	// TODO: your code for the page verify
+	unsigned long i;
+	unsigned char* pageBuf = (unsigned char*)verifyAddr;
+	
+	for(i = 0; i < size; i++)
+ 174:	b1a9      	cbz	r1, 1a2 <FlashVerify+0x2e>
+ *******************************************************************************
+ */
+int FlashVerify(unsigned long verifyAddr,
+                unsigned long size,
+                unsigned char *buf)
+{
+ 176:	b410      	push	{r4}
+	unsigned long i;
+	unsigned char* pageBuf = (unsigned char*)verifyAddr;
+	
+	for(i = 0; i < size; i++)
+	{
+		if(pageBuf[i] != buf[i])
+ 178:	7804      	ldrb	r4, [r0, #0]
+ 17a:	7813      	ldrb	r3, [r2, #0]
+ 17c:	429c      	cmp	r4, r3
+ 17e:	d10d      	bne.n	19c <FlashVerify+0x28>
+ 180:	4411      	add	r1, r2
+ 182:	3201      	adds	r2, #1
+ 184:	e005      	b.n	192 <FlashVerify+0x1e>
+ 186:	f812 3b01 	ldrb.w	r3, [r2], #1
+ 18a:	f810 4f01 	ldrb.w	r4, [r0, #1]!
+ 18e:	429c      	cmp	r4, r3
+ 190:	d104      	bne.n	19c <FlashVerify+0x28>
+{
+	// TODO: your code for the page verify
+	unsigned long i;
+	unsigned char* pageBuf = (unsigned char*)verifyAddr;
+	
+	for(i = 0; i < size; i++)
+ 192:	428a      	cmp	r2, r1
+ 194:	d1f7      	bne.n	186 <FlashVerify+0x12>
+		if(pageBuf[i] != buf[i])
+		{
+			return (1);
+		}
+	}
+	return (0);
+ 196:	2000      	movs	r0, #0
+}
+ 198:	bc10      	pop	{r4}
+ 19a:	4770      	bx	lr
+	
+	for(i = 0; i < size; i++)
+	{
+		if(pageBuf[i] != buf[i])
+		{
+			return (1);
+ 19c:	2001      	movs	r0, #1
+		}
+	}
+	return (0);
+}
+ 19e:	bc10      	pop	{r4}
+ 1a0:	4770      	bx	lr
+		if(pageBuf[i] != buf[i])
+		{
+			return (1);
+		}
+	}
+	return (0);
+ 1a2:	4608      	mov	r0, r1
+}
+ 1a4:	4770      	bx	lr
+ 1a6:	bf00      	nop
