@@ -17,6 +17,10 @@
 #include <FlashAlgorithm.h>
 #include "nrf52_bitfields.h"
 
+#ifdef LOG_ENABLE
+#include "uart.h"
+#endif
+
 /* ================================================================================ */
 /* ================                      NVMC                      ================ */
 /* ================================================================================ */
@@ -50,6 +54,10 @@ typedef struct {                                    /*!< NVMC Structure         
 
 #define NRF_NVMC            ((NRF_NVMC_Type           *) 0x4001E000UL)
 
+#ifdef LOG_ENABLE
+static int busy;
+#endif
+
 /**
  *******************************************************************************
  * @brief      Initialize before Flash Programming/Erase Functions 
@@ -70,6 +78,12 @@ int FlashInit(unsigned long baseAddr,
               unsigned long clk,
               unsigned long operateFuc)
 {
+
+#ifdef LOG_ENABLE
+	uartInit();
+	busy = 0;
+#endif
+	
 	// Включаем режим чтения памяти
 	NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Ren;
 	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
@@ -95,6 +109,12 @@ int FlashInit(unsigned long baseAddr,
  */
 int FlashUnInit(unsigned long operateFuc)
 {
+
+#ifdef LOG_ENABLE
+	uartUninit();
+	busy = 0;
+#endif
+	
 	// Включаем режим чтения памяти
 	NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Ren;
 	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
@@ -119,6 +139,11 @@ int FlashUnInit(unsigned long operateFuc)
  */
 int FlashEraseChip(void)
 {
+
+#ifdef LOG_ENABLE
+	uartSendStr("Chip ERASE  ");
+#endif
+
 	// Enable erase.
 	NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Een;
 	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
@@ -135,6 +160,10 @@ int FlashEraseChip(void)
 	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
 	{
 	}
+
+#ifdef LOG_ENABLE
+	uartSendStr("[DONE]\n");
+#endif
 
 	return (0);
 }
@@ -156,6 +185,19 @@ int FlashEraseSector(unsigned long sectorAddr)
 {
 	sectorAddr = (sectorAddr + 3) & ~0x3UL;
 
+#ifdef LOG_ENABLE
+	uartSendStr("Sector ERASE, address = ");
+	uartPrintHex(sectorAddr, 8);
+	uartSendStr("  ");
+		
+	if(busy)
+	{
+		uartSendStr("[BUSY]\n");
+		return 1;
+	}
+	busy = 1;
+#endif
+
     // Enable erase.
     NRF_NVMC->CONFIG = NVMC_CONFIG_WEN_Een;
     while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
@@ -173,6 +215,11 @@ int FlashEraseSector(unsigned long sectorAddr)
     {
     }
 
+#ifdef LOG_ENABLE
+	uartSendStr("[DONE]\n");
+	busy = 0;
+#endif
+
 	return 0;
 }
 
@@ -184,19 +231,31 @@ void nrf_nvmc_write_byte(uint32_t address, uint8_t value)
 
 	value32 = value32 + ((uint32_t) value << (byte_shift << 3));
 
+#if 0
+	uartSendStr("\tWrite ");
+	uartPrintHex(value32, 8);
+	uartSendStr(" to ");
+	uartPrintHex(address, 8);
+	uartSendStr("\n");
+#endif
+
 	// Enable write.
 	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
 	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
 	{
+
 	}
 
 	*(uint32_t*) address32 = value32;
 	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
 	{
+	
 	}
 
 	NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+	while (NRF_NVMC->READY == NVMC_READY_READY_Busy)
 	{
+
 	}
 }
 
@@ -219,12 +278,56 @@ int FlashProgramPage(unsigned long pageAddr,
                      unsigned long size,
                      unsigned char *buf)
 {
-	unsigned long i;
+#ifdef LOG_ENABLE
+	uartSendStr("Page PROGRAM, addr = ");
+	uartPrintHex(pageAddr, 8);
+	uartSendStr(" , size = ");
+	uartPrintLongint32(size, 0);
+	uartSendStr("  ");
+	
+	if(busy)
+	{
+		uartSendStr("[BUSY]\n");
+		return 1;
+	}
+	busy = 1;
+#endif
 
-	for (i = 0; i < size; i++)
+#if 0
+	for (unsigned long i = 0; i < size; i++)
 	{
 		nrf_nvmc_write_byte(pageAddr + i, buf[i]);
 	}
+#else
+	// CoFlash на самом деле не контролирует статус завершения
+	// операции записи в память. Он вызывает функцию FlashProgramPage
+	// по таймеру. Потому пишем в память максимально быстро, чтобы
+	// успевать до следующего вызова функции
+	unsigned long * flash = (unsigned long*)pageAddr;
+	unsigned long * ram = (unsigned long*)buf;
+	size >>= 2;
+	
+	while(size)
+	{
+		// Enable write.
+		NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Wen << NVMC_CONFIG_WEN_Pos);
+		while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
+		
+		*flash++ = *ram++;
+		
+		while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
+		
+		NRF_NVMC->CONFIG = (NVMC_CONFIG_WEN_Ren << NVMC_CONFIG_WEN_Pos);
+		while (NRF_NVMC->READY == NVMC_READY_READY_Busy){}
+
+		--size;
+	}
+#endif
+
+#ifdef LOG_ENABLE
+	uartSendStr("[DONE]\n");
+	busy = 0;
+#endif
 
 	return (0);
 }
@@ -249,17 +352,34 @@ int FlashVerify(unsigned long verifyAddr,
                 unsigned long size,
                 unsigned char *buf)
 {
-	// TODO: your code for the page verify
 	unsigned long i;
 	unsigned char* pageBuf = (unsigned char*)verifyAddr;
 	
+#ifdef LOG_ENABLE
+	uartSendStr("Data VERIFY, address = ");
+	uartPrintHex(verifyAddr, 8);
+	uartSendStr(" , size = ");
+	uartPrintLongint32(size, 0);
+	uartSendStr(" , buffer = ");
+	uartPrintHex((unsigned long)buf, 8);
+	uartSendStr("  ");
+#endif
+
 	for(i = 0; i < size; i++)
 	{
 		if(pageBuf[i] != buf[i])
 		{
+#ifdef LOG_ENABLE
+			uartSendStr("[FAILED]\n");
+#endif
 			return (1);
 		}
 	}
+	
+#ifdef LOG_ENABLE
+	uartSendStr("[OK]\n");
+#endif
+
 	return (0);
 }
 

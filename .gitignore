@@ -16,8 +16,15 @@ project.history
 /flash/*.a
 /flash/*.elf
 /flash/source/*
+/flash/source/*/*/obj
+/flash/source/*/*/bin
 !/flash/SAMD21_256.elf
+!/flash/NRF52832_512.elf
+!/flash/NRF52832_512_0x1F000.elf
+!/flash/NRF52832_512_0x44000.elf
 !/flash/source/SAMD21G18
+!/flash/source/NRF52832
+!/flash/source/NRF52832_0x44000
 /jre
 /kindeditor*
 /p2
@@ -27,7 +34,7 @@ project.history
 /bin/*
 !/bin/ICoodat.dll
 /configuration/*
-!/configuration/config.ini
+/configuration/config.ini
 /repo/.rn/*
 /repo/Boards/*
 /repo/Components/*

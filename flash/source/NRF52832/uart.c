@@ -66,7 +66,7 @@ void uartInit()
 	// Контроль четности отключен, аппаратный контроль выключен
 	NRF_UART0->CONFIG = 0;
 	NRF_UART0->PSELTXD = 4;
-	NRF_UART0->BAUDRATE = 0x01D7E000;
+	NRF_UART0->BAUDRATE = 0x0EBED000;  //921600
 	NRF_UART0->ENABLE = 4;
 	NRF_UART0->TASKS_STARTTX = 1;
 }
@@ -87,3 +87,137 @@ void uartPutChar(char c)
 	NRF_UART0->EVENTS_TXDRDY = 0;
 }
 
+//------------------------------------------------------------------------------
+// Отправка строки через UART
+//------------------------------------------------------------------------------
+void uartSendStr(const char * str)
+{
+
+	while (*str)
+		uartPutChar(*str++);
+}
+
+//------------------------------------------------------------------------------
+// Перевод знакового целого в строку
+//------------------------------------------------------------------------------
+void uartPrintLongint32(long int val, unsigned char dec_places)
+{
+	unsigned char minus = 0;
+	char dst_str[16];
+	char * ptr = &dst_str[15];
+	unsigned long uval = (unsigned long)val;
+	unsigned char digit = 0;
+
+	if(uval == 0)
+	{
+		uartPutChar('0');
+		return;
+	}
+
+	//Отрицательное число
+	if(uval & 0x80000000)
+	{
+		uval = ~uval;
+		uval++;
+		minus = 1;
+	}
+
+	//Дробная точка выходит за размер числа (макс 10 разрядов)
+	if(dec_places > 10)
+	{
+		dec_places = 10;
+	}
+
+	//Обозначаем конец строки
+	*ptr-- = '\0';
+
+	//Заносим каждый разряд с учетом дробной точки
+	while(uval > 0)
+	{
+		if(dec_places && dec_places == digit)
+		{
+			*ptr-- = '.';
+			dec_places = 0;
+			continue;
+		}
+
+		*ptr-- = (uval % 10) + '0';
+		uval /= 10;
+		digit++;
+	}
+
+	//Дополняем нулями после запятой
+	while(dec_places > digit)
+	{
+		*ptr-- = '0';
+		digit++;
+	}
+
+	//Ставим точку
+	if(dec_places)
+	{
+		*ptr-- = '.';
+		*ptr-- = '0';
+		dec_places = 0;
+	}
+
+	//Ставим знак
+	if(minus)
+	{
+		*ptr = '-';
+	}
+	else
+	{
+		ptr++;
+	}
+
+	uartSendStr(ptr);
+}
+
+//------------------------------------------------------------------------------
+// Вывод в uart числа в hex-формате
+//------------------------------------------------------------------------------
+void uartPrintHex(unsigned long val, int length)
+{
+	unsigned char chr;
+
+	if(length == 0)
+		return;
+	else if(length > 8)
+		length = 8;
+
+	uartPutChar('0');
+	uartPutChar('x');
+
+	for(int i = length; i > 0; i--)
+	{
+		chr = (val >> ((i - 1) * 4)) & 0xFul;
+
+		if(chr >= 0 && chr < 10)
+			uartPutChar('0' + chr);
+		else if(chr >= 10 && chr < 16)
+			uartPutChar('A' + (chr - 10));
+	}
+}
+
+//------------------------------------------------------------------------------
+// Вывод параметра на печать
+//------------------------------------------------------------------------------
+void uartPrintHexParameter(const char * paramName, unsigned long paramVal, int len)
+{
+	uartSendStr(paramName);
+	uartSendStr(" = ");
+	uartPrintHex(paramVal, len);
+	uartPutChar('\n');
+}
+
+//------------------------------------------------------------------------------
+// Вывод параметра на печать
+//------------------------------------------------------------------------------
+void uartPrintIntParameter(const char * paramName, signed long paramVal, unsigned char dotPos)
+{
+	uartSendStr(paramName);
+	uartSendStr(" = ");
+	uartPrintLongint32(paramVal, dotPos);
+	uartPutChar('\n');
+}

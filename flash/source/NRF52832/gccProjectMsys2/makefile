@@ -60,6 +60,7 @@ INCLUDES  = -I$(FRAMEWORK_DIR)/
 
 # defines
 DEFINES = -D$(FLASH_CHIP)
+#DEFINES += -DLOG_ENABLE
 
 TARGET_OPTS = -mcpu=cortex-m4 -mthumb
 #position-independent options
