@@ -71,7 +71,7 @@ static void uart_init()
 		return;
 
 	config.pselrxd = 11;          // RX pin
-	config.pseltxd = 4;           // TX pin
+	config.pseltxd = 5;           // TX pin
 	config.use_easy_dma = false;
 
 	nrf_drv_uart_uninit(&uart_instance);
