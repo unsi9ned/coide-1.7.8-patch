@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 #ifndef DW1000_USE_DMA
-#define DW1000_USE_DMA              1
+#define DW1000_USE_DMA              0
 #endif
 
 #if DW1000_USE_DMA
@@ -48,7 +48,11 @@ extern "C" {
 #define SPIx_LOW_RATE               (2000000UL)
 
 #define DW1000_RSTn_PIN             24
+
 #define DW1000_IRQ_PIN              19
+#define DW1000_IRQ_PIN_EVENT_ID     0
+#define DW1000_IRQ_PIN_EVENT_(idx)  NRF_GPIOTE_EVENTS_IN_ ## idx
+#define DW1000_IRQ_PIN_EVENT(idx)   DW1000_IRQ_PIN_EVENT_(idx)
 
 
 #define USARTx                      NRF_UART0

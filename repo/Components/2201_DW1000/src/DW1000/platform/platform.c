@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <nrf.h>
 #include <nrf_gpio.h>
+#include <nrf_gpiote.h>
 #include <nrf_uart.h>
 #include <nrf_spi.h>
 #include <nrf_spim.h>
@@ -30,7 +31,6 @@ static void (*decaIrqHandler)() = NULL;
 //------------------------------------------------------------------------------
 static void gpio_init()
 {
-	nrf_gpio_cfg_input(DW1000_IRQ_PIN, NRF_GPIO_PIN_NOPULL);
 	nrf_gpio_cfg_input(DW1000_RSTn_PIN, NRF_GPIO_PIN_NOPULL);
 	nrf_gpio_cfg_input(USARTx_RX, NRF_GPIO_PIN_PULLUP);
 //	nrf_gpio_cfg_output(USARTx_TX);
@@ -87,19 +87,7 @@ void reset_DW1000(void)
 //------------------------------------------------------------------------------
 void port_DisableEXT_IRQ()
 {
-//	uint32 in = DW1000_IRQ_EIC_IN;
-//
-//	if(in == PIN_PA08A_EIC_NMI)
-//	{
-//		EIC->NMICTRL.bit.NMISENSE = 0; // Turn off detection
-//	}
-//	else
-//	{
-//		EIC->INTENCLR.reg = EIC_INTENCLR_EXTINT(1 << in);
-//
-//		// Disable wakeup capability on pin during sleep
-//		EIC->WAKEUP.reg &= ~(1 << in);
-//	}
+	nrf_gpiote_int_disable((1ul << DW1000_IRQ_PIN_EVENT_ID));
 }
 
 //------------------------------------------------------------------------------
@@ -107,31 +95,7 @@ void port_DisableEXT_IRQ()
 //------------------------------------------------------------------------------
 void port_EnableEXT_IRQ()
 {
-//	uint32_t config;
-//	uint32_t pos;
-//	uint32 in = DW1000_IRQ_EIC_IN;
-//
-//	// Enable wakeup capability on pin in case being used during sleep
-//	EIC->WAKEUP.reg |= (1 << in);
-//
-//	// Look for right CONFIG register to be addressed
-//	if(in > 7)
-//	{
-//		config = 1;
-//		pos = (in - 8) << 2;
-//	}
-//	else
-//	{
-//		config = 0;
-//		pos = in << 2;
-//	}
-//
-//	// Reset sense mode, important when changing trigger mode during runtime
-//	EIC->CONFIG[config].reg &=~ (EIC_CONFIG_SENSE0_Msk << pos);
-//	EIC->CONFIG[config].reg |= EIC_CONFIG_SENSE0_RISE_Val << pos;
-//
-//	// Enable the interrupt
-//	EIC->INTENSET.reg = EIC_INTENSET_EXTINT(1 << in);
+	nrf_gpiote_int_enable((1ul << DW1000_IRQ_PIN_EVENT_ID));
 }
 
 //------------------------------------------------------------------------------
@@ -140,15 +104,18 @@ void port_EnableEXT_IRQ()
 //------------------------------------------------------------------------------
 decaIrqStatus_t port_GetEXT_IRQStatus()
 {
-//	decaIrqStatus_t bitstatus;
-//	uint32 in = DW1000_IRQ_EIC_IN;
-//
-//	if(in != PIN_PA08A_EIC_NMI)
-//	{
-//		bitstatus = (EIC->INTENSET.reg & EIC_INTENCLR_EXTINT(1 << in)) ? 1 : 0;
-//	}
-//
-//	return bitstatus;
+	decaIrqStatus_t bitstatus;
+
+	if(nrf_gpiote_int_is_enabled(1ul << DW1000_IRQ_PIN_EVENT_ID))
+	{
+		bitstatus = 1;
+	}
+	else
+	{
+		bitstatus = 0;
+	}
+
+	return bitstatus;
 }
 
 //------------------------------------------------------------------------------
@@ -156,33 +123,33 @@ decaIrqStatus_t port_GetEXT_IRQStatus()
 //------------------------------------------------------------------------------
 void port_set_deca_isr(void (*deca_isr)())
 {
-//	/* Check DW1000 IRQ activation status. */
-//	decaIrqStatus_t en = port_GetEXT_IRQStatus();
-//
-//	/* If needed, deactivate DW1000 IRQ during the installation of the new handler. */
-//	if(en)
-//	{
-//		port_DisableEXT_IRQ();
-//	}
-//	decaIrqHandler = deca_isr;
-//
-//	if(en)
-//	{
-//		port_EnableEXT_IRQ();
-//	}
+	/* Check DW1000 IRQ activation status. */
+	decaIrqStatus_t en = port_GetEXT_IRQStatus();
+
+	/* If needed, deactivate DW1000 IRQ during the installation of the new handler. */
+	if(en)
+	{
+		port_DisableEXT_IRQ();
+	}
+	decaIrqHandler = deca_isr;
+
+	if(en)
+	{
+		port_EnableEXT_IRQ();
+	}
 }
 
 //------------------------------------------------------------------------------
 // Обработчик внешних прерываний
 //------------------------------------------------------------------------------
-void __attribute__ ((weak)) EIC_Handler(void)
+void GPIOTE_IRQHandler(void)
 {
-//	if((EIC->INTFLAG.reg & DW1000_IRQ_EIC_MASK) && decaIrqHandler)
-//	{
-//		decaIrqHandler();
-//	}
-//	// Clear the interrupt
-//	EIC->INTFLAG.reg = 0xFFFF;
+	if(decaIrqHandler)
+	{
+		decaIrqHandler();
+	}
+	// Clear the interrupt
+	nrf_gpiote_event_clear(DW1000_IRQ_PIN_EVENT(DW1000_IRQ_PIN_EVENT_ID));
 }
 
 //------------------------------------------------------------------------------
@@ -190,20 +157,17 @@ void __attribute__ ((weak)) EIC_Handler(void)
 //------------------------------------------------------------------------------
 static void interrupt_init()
 {
-//	NVIC_DisableIRQ(EIC_IRQn);
-//	NVIC_ClearPendingIRQ(EIC_IRQn);
-//	NVIC_SetPriority(EIC_IRQn, 0);
-//	NVIC_EnableIRQ(EIC_IRQn);
-//
-//	// Enable GCLK for IEC (External Interrupt Controller)
-//	GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID(GCLK_CLKCTRL_ID_EIC_Val));
-//
-//	// Enable EIC
-//	EIC->CTRL.bit.ENABLE = 1;
-//	while (EIC->STATUS.bit.SYNCBUSY == 1) { }
-//
-//	gpio_periph_enable(DW1000_IRQ_PIN, DW1000_IRQ_MUX);
-//	port_EnableEXT_IRQ();
+	nrf_gpio_cfg_input(DW1000_IRQ_PIN, NRF_GPIO_PIN_PULLDOWN);
+	nrf_gpiote_event_enable(DW1000_IRQ_PIN_EVENT_ID);
+	nrf_gpiote_event_configure(DW1000_IRQ_PIN_EVENT_ID, DW1000_IRQ_PIN, NRF_GPIOTE_POLARITY_LOTOHI);
+	nrf_gpiote_event_clear(DW1000_IRQ_PIN_EVENT(DW1000_IRQ_PIN_EVENT_ID));
+
+	NVIC_DisableIRQ(GPIOTE_IRQn);
+	NVIC_ClearPendingIRQ(GPIOTE_IRQn);
+	NVIC_SetPriority(GPIOTE_IRQn, 0);
+	NVIC_EnableIRQ(GPIOTE_IRQn);
+
+	port_EnableEXT_IRQ();
 }
 
 //------------------------------------------------------------------------------

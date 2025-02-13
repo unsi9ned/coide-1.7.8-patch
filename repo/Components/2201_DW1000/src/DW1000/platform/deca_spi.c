@@ -106,9 +106,8 @@ int writetospi
     const uint8 *bodyBuffer
 )
 {
-	int i = 0;
 	decaIrqStatus_t stat;
-	uint8_t dummyBuffer[8];
+	uint8_t dummyBuffer[8] = {0xFF};
 
 	stat = decamutexon() ;
 
@@ -119,7 +118,10 @@ int writetospi
 	nrf_spim_rx_buffer_set(SPIx, dummyBuffer, 1);
 	nrf_spim_tx_buffer_set(SPIx, headerBuffer, headerLength);
 
+	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
+	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
 	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
 
 //	nrf_spim_tx_list_enable(SPIx);
 //	nrf_spim_rx_list_disable(SPIx);
@@ -131,6 +133,7 @@ int writetospi
 	{
 		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_STARTED));
 
+		nrf_spim_orc_set(SPIx, 0xFF);
 		nrf_spim_rx_buffer_set(SPIx, dummyBuffer, 1);
 		nrf_spim_tx_buffer_set(SPIx, bodyBuffer, bodylength);
 
@@ -220,7 +223,7 @@ int readfromspi
 )
 {
 
-	uint8_t dummyBuffer[8];
+	uint8_t dummyBuffer[8] = {0xFF};
 
 	decaIrqStatus_t  stat ;
 
@@ -236,7 +239,10 @@ int readfromspi
 	nrf_spim_rx_buffer_set(SPIx, dummyBuffer, 1);
 	nrf_spim_tx_buffer_set(SPIx, headerBuffer, headerLength);
 
+	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
+	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
 	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
 
 //	nrf_spim_tx_list_enable(SPIx);
 //	nrf_spim_rx_list_disable(SPIx);
@@ -248,10 +254,10 @@ int readfromspi
 	{
 		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_STARTED));
 
-		memset(readBuffer, 0xFF, readlength);
+		//memset(readBuffer, 0xFF, readlength);
 
 		nrf_spim_rx_buffer_set(SPIx, readBuffer, readlength);
-		nrf_spim_tx_buffer_set(SPIx, readBuffer, readlength);
+		nrf_spim_tx_buffer_set(SPIx, dummyBuffer, 1);
 
 		// End of header trasmission
 		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
