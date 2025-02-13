@@ -30,14 +30,22 @@ extern "C" {
 #define CLOCKS_PER_SEC              1000
 #endif
 
-#define SPIx                        NRF_SPI0
+#ifndef DW1000_USE_DMA
+#define DW1000_USE_DMA              1
+#endif
+
+#if DW1000_USE_DMA
+#define SPIx                        NRF_SPIM1
+#else
+#define SPIx                        NRF_SPI1
+#endif
 #define SPIx_CS_PIN                 17
 #define SPIx_SCK_PIN                16
 #define SPIx_MISO_PIN               18
 #define SPIx_MOSI_PIN               20
 
-#define SPIx_HIGH_RATE              (20000000UL)
-#define SPIx_LOW_RATE               ( 2000000UL)
+#define SPIx_HIGH_RATE              (8000000UL)
+#define SPIx_LOW_RATE               (2000000UL)
 
 #define DW1000_RSTn_PIN             24
 #define DW1000_IRQ_PIN              19

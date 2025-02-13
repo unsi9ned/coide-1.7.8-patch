@@ -17,6 +17,7 @@
 #include <nrf_gpio.h>
 #include <nrf_uart.h>
 #include <nrf_spi.h>
+#include <nrf_spim.h>
 #include "deca_sleep.h"
 #include "deca_device_api.h"
 #include "platform.h"
@@ -35,9 +36,9 @@ static void gpio_init()
 //	nrf_gpio_cfg_output(USARTx_TX);
 	nrf_gpio_cfg_output(SPIx_CS_PIN);
 	nrf_gpio_pin_set(SPIx_CS_PIN);
-//	nrf_gpio_cfg_output(SPIx_MOSI_PIN);
-//	nrf_gpio_cfg_output(SPIx_SCK_PIN);
-//	nrf_gpio_cfg_input(SPIx_MISO_PIN, NRF_GPIO_PIN_PULLUP);
+	nrf_gpio_cfg_output(SPIx_MOSI_PIN);
+	nrf_gpio_cfg_output(SPIx_SCK_PIN);
+	nrf_gpio_cfg_input(SPIx_MISO_PIN, NRF_GPIO_PIN_PULLUP);
 }
 
 //------------------------------------------------------------------------------
@@ -284,11 +285,20 @@ static void spi_peripheral_init(void)
 
 	SPIx->FREQUENCY = SPI_FREQUENCY_FREQUENCY_M2;
 
-	SPIx->PSELSCK = SPIx_SCK_PIN;
-	SPIx->PSELMOSI = SPIx_MOSI_PIN;
-	SPIx->PSELMISO = SPIx_MISO_PIN;
+	SPIx->PSEL.SCK = SPIx_SCK_PIN;
+	SPIx->PSEL.MOSI = SPIx_MOSI_PIN;
+	SPIx->PSEL.MISO = SPIx_MISO_PIN;
 
+#if DW1000_USE_DMA
+	SPIx->ORC = 0xFF;
+	SPIx->RXD.LIST = 0;
+	SPIx->TXD.LIST = 0;
+	SPIx->RXD.MAXCNT = 0;
+	SPIx->TXD.MAXCNT = 0;
+	SPIx->ENABLE = 7;
+#else
 	SPIx->ENABLE = 1;
+#endif
 }
 
 //------------------------------------------------------------------------------
