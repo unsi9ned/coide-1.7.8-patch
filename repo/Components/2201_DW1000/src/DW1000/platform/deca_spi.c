@@ -107,47 +107,50 @@ int writetospi
 )
 {
 	decaIrqStatus_t stat;
-	uint8_t dummyBuffer[8] = {0xFF};
+	const uint8_t * pTxData = headerBuffer;
+	uint8_t         dummy = 0xFF;
 
 	stat = decamutexon() ;
 
 	// CS = 0
 	nrf_gpio_pin_clear(SPIx_CS_PIN);
 
-	// Write header
-	nrf_spim_rx_buffer_set(SPIx, dummyBuffer, 1);
-	nrf_spim_tx_buffer_set(SPIx, headerBuffer, headerLength);
-
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
-
-//	nrf_spim_tx_list_enable(SPIx);
-//	nrf_spim_rx_list_disable(SPIx);
-
-	nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
-
 	// Write data
-	if(bodylength > 0)
+	if(headerLength)
 	{
-		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_STARTED));
+		nrf_spim_rx_buffer_set(SPIx, &dummy, 1);
+		nrf_spim_tx_buffer_set(SPIx, pTxData, headerLength);
 
-		nrf_spim_orc_set(SPIx, 0xFF);
-		nrf_spim_rx_buffer_set(SPIx, dummyBuffer, 1);
-		nrf_spim_tx_buffer_set(SPIx, bodyBuffer, bodylength);
-
-		// End of header trasmission
-		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
 		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STOPPED);
 
-		// Start body transmission
 		nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
+
+		//End of transaction
+		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
 	}
 
-	//End of transaction
-	while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+	// Read data
+	if(bodylength)
+	{
+		pTxData = bodyBuffer;
+		nrf_spim_rx_buffer_set(SPIx, &dummy, 1);
+		nrf_spim_tx_buffer_set(SPIx, pTxData, bodylength);
+
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STOPPED);
+
+		nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
+
+		//End of transaction
+		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
+	}
 
 	// CS = 1
 	nrf_gpio_pin_set(SPIx_CS_PIN);
@@ -222,10 +225,10 @@ int readfromspi
     uint8       *readBuffer
 )
 {
-
-	uint8_t dummyBuffer[8] = {0xFF};
-
-	decaIrqStatus_t  stat ;
+	const uint8_t * pTxData = headerBuffer;
+	uint8_t       * pRxData = readBuffer;
+	uint8_t         dummy = 0xFF;
+	decaIrqStatus_t stat ;
 
 	if(!headerLength)
 		return 1;
@@ -235,41 +238,42 @@ int readfromspi
 	// CS = 0
 	nrf_gpio_pin_clear(SPIx_CS_PIN);
 
-	// Write header
-	nrf_spim_rx_buffer_set(SPIx, dummyBuffer, 1);
-	nrf_spim_tx_buffer_set(SPIx, headerBuffer, headerLength);
-
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
-
-//	nrf_spim_tx_list_enable(SPIx);
-//	nrf_spim_rx_list_disable(SPIx);
-
-	nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
-
-	// Read data
-	if(readlength > 0)
+	// Write data
+	if(headerLength)
 	{
-		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_STARTED));
+		nrf_spim_rx_buffer_set(SPIx, &dummy, 1);
+		nrf_spim_tx_buffer_set(SPIx, pTxData, headerLength);
 
-		//memset(readBuffer, 0xFF, readlength);
-
-		nrf_spim_rx_buffer_set(SPIx, readBuffer, readlength);
-		nrf_spim_tx_buffer_set(SPIx, dummyBuffer, 1);
-
-		// End of header trasmission
-		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
 		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STOPPED);
 
-		// Start body transmission
 		nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
+
+		//End of transaction
+		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
 	}
 
-	//End of transaction
-	while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
-	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+	// Read data
+	if(readlength)
+	{
+		nrf_spim_rx_buffer_set(SPIx, pRxData, readlength);
+		nrf_spim_tx_buffer_set(SPIx, &dummy, 1);
+		nrf_spim_orc_set(SPIx, 0xFF);
+
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
+		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STOPPED);
+
+		nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
+
+		//End of transaction
+		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
+	}
 
 	// CS = 1
 	nrf_gpio_pin_set(SPIx_CS_PIN);
