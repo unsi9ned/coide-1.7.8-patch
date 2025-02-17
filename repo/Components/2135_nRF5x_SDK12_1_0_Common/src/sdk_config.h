@@ -1388,7 +1388,9 @@
 // <q> BLE_NUS_ENABLED  - ble_nus - Nordic UART Service
  
 
-#ifndef BLE_NUS_ENABLED
+#ifdef SDK_BLE_NUS_ENABLE
+#define BLE_NUS_ENABLED 1
+#else
 #define BLE_NUS_ENABLED 0
 #endif
 
@@ -1656,7 +1658,9 @@
 
 // <e> CLOCK_ENABLED - nrf_drv_clock - CLOCK peripheral driver
 //==========================================================
-#ifndef CLOCK_ENABLED
+#ifdef SDK_CLOCK_ENABLE
+#define CLOCK_ENABLED 1
+#else
 #define CLOCK_ENABLED 0
 #endif
 // <o> CLOCK_CONFIG_XTAL_FREQ  - HF XTAL Frequency
@@ -1698,7 +1702,9 @@
 
 // <e> COMP_ENABLED - nrf_drv_comp - COMP peripheral driver
 //==========================================================
-#ifndef COMP_ENABLED
+#ifdef SDK_COMP_ENABLE
+#define COMP_ENABLED 1
+#else
 #define COMP_ENABLED 0
 #endif
 // <o> COMP_CONFIG_REF  - Reference voltage
@@ -1795,9 +1801,12 @@
 
 // <e> GPIOTE_ENABLED - nrf_drv_gpiote - GPIOTE peripheral driver
 //==========================================================
-#ifndef GPIOTE_ENABLED
+#ifdef SDK_GPIOTE_ENABLE
+#define GPIOTE_ENABLED 1
+#else
 #define GPIOTE_ENABLED 0
 #endif
+
 // <o> GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS - Number of lower power input pins 
 #ifndef GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS
 #define GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS 4
@@ -1824,7 +1833,9 @@
 
 // <e> I2S_ENABLED - nrf_drv_i2s - I2S peripheral driver
 //==========================================================
-#ifndef I2S_ENABLED
+#ifdef SDK_I2S_ENABLE
+#define I2S_ENABLED 1
+#else
 #define I2S_ENABLED 0
 #endif
 // <o> I2S_CONFIG_SCK_PIN - SCK pin  <0-31> 
@@ -1970,7 +1981,9 @@
 
 // <e> LPCOMP_ENABLED - nrf_drv_lpcomp - LPCOMP peripheral driver
 //==========================================================
-#ifndef LPCOMP_ENABLED
+#ifdef SDK_LPCOMP_ENABLE
+#define LPCOMP_ENABLED 1
+#else
 #define LPCOMP_ENABLED 0
 #endif
 // <o> LPCOMP_CONFIG_REFERENCE  - Reference voltage
@@ -2050,7 +2063,9 @@
 
 // <e> PDM_ENABLED - nrf_drv_pdm - PDM peripheral driver
 //==========================================================
-#ifndef PDM_ENABLED
+#ifdef SDK_PDM_ENABLE
+#define PDM_ENABLED 1
+#else
 #define PDM_ENABLED 0
 #endif
 // <o> PDM_CONFIG_MODE  - Mode
@@ -2152,13 +2167,17 @@
 // <q> PPI_ENABLED  - nrf_drv_ppi - PPI peripheral driver
  
 
-#ifndef PPI_ENABLED
+#ifdef SDK_PPI_ENABLE
+#define PPI_ENABLED 1
+#else
 #define PPI_ENABLED 0
 #endif
 
 // <e> PWM_ENABLED - nrf_drv_pwm - PWM peripheral driver
 //==========================================================
-#ifndef PWM_ENABLED
+#ifdef SDK_PWM_ENABLE
+#define PWM_ENABLED 1
+#else
 #define PWM_ENABLED 0
 #endif
 // <o> PWM_DEFAULT_CONFIG_OUT0_PIN - Out0 pin  <0-31> 
@@ -2627,7 +2646,9 @@
 
 // <e> SPI_ENABLED - nrf_drv_spi - SPI/SPIM peripheral driver
 //==========================================================
-#ifndef SPI_ENABLED
+#ifdef SDK_SPI_ENABLE
+#define SPI_ENABLED 1
+#else
 #define SPI_ENABLED 0
 #endif
 // <o> SPI_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
@@ -2993,7 +3014,9 @@
 
 // <e> UART_ENABLED - nrf_drv_uart - UART/UARTE peripheral driver
 //==========================================================
-#ifndef UART_ENABLED
+#ifdef SDK_UART_ENABLE
+#define UART_ENABLED 1
+#else
 #define UART_ENABLED 0
 #endif
 // <o> UART_DEFAULT_CONFIG_HWFC  - Hardware Flow Control
@@ -3503,7 +3526,9 @@
 
 // <e> HARDFAULT_HANDLER_ENABLED - hardfault_default - HardFault default handler for debugging and release
 //==========================================================
-#ifndef HARDFAULT_HANDLER_ENABLED
+#ifdef SDK_HARDFAULT_HANDLER_ENABLE
+#define HARDFAULT_HANDLER_ENABLED 1
+#else
 #define HARDFAULT_HANDLER_ENABLED 0
 #endif
 // <q> HARDFAULT_HANDLER_GDB_PSP_BACKTRACE  - Bypass the GDB problem with multiple stack pointers backtrace
@@ -4277,7 +4302,9 @@
 //==========================================================
 // <e> NRF_LOG_ENABLED - Logging module for nRF5 SDK
 //==========================================================
-#ifndef NRF_LOG_ENABLED
+#ifdef SDK_NRF_LOG_ENABLE
+#define NRF_LOG_ENABLED 1
+#else
 #define NRF_LOG_ENABLED 0
 #endif
 // <e> NRF_LOG_USES_COLORS - If enabled then ANSI escape code for colors is prefixed to every string
@@ -4353,7 +4380,7 @@
 // <i> Log data is buffered and can be processed in idle.
 
 #ifndef NRF_LOG_DEFERRED
-#define NRF_LOG_DEFERRED 1
+#define NRF_LOG_DEFERRED 0
 #endif
 
 // <o> NRF_LOG_BUFSIZE  - Size of the buffer for storing logs (in bytes).
@@ -4405,6 +4432,53 @@
 
 #ifndef NRF_LOG_CLI_CMDS
 #define NRF_LOG_CLI_CMDS 1
+#endif
+
+#ifdef  SDK_NRF_LOG_USES_UART
+#define NRF_LOG_BACKEND_SERIAL_USES_RTT   0
+#define NRF_LOG_BACKEND_SERIAL_USES_UART  1
+#elif   defined(SDK_NRF_LOG_USES_RTT)
+#define NRF_LOG_BACKEND_SERIAL_USES_RTT   1
+#define NRF_LOG_BACKEND_SERIAL_USES_UART  0
+#else
+#define NRF_LOG_BACKEND_SERIAL_USES_RTT   0
+#define NRF_LOG_BACKEND_SERIAL_USES_UART  0
+#endif
+
+#ifndef NRF_LOG_BACKEND_UART_INSTANCE
+#define NRF_LOG_BACKEND_UART_INSTANCE 0
+#endif
+
+#ifndef NRF_LOG_BACKEND_MAX_STRING_LENGTH
+#define NRF_LOG_BACKEND_MAX_STRING_LENGTH 256
+#endif
+
+#ifndef NRF_LOG_TIMESTAMP_DIGITS
+#define NRF_LOG_TIMESTAMP_DIGITS 10
+#endif
+
+#ifndef NRF_LOG_BACKEND_SERIAL_UART_BAUDRATE
+#define NRF_LOG_BACKEND_SERIAL_UART_BAUDRATE 30801920 //115200 for nrf52
+#endif
+
+#ifndef NRF_LOG_BACKEND_SERIAL_UART_TX_PIN
+#define NRF_LOG_BACKEND_SERIAL_UART_TX_PIN 0xFFFFFFFFul
+#endif
+
+#ifndef NRF_LOG_BACKEND_SERIAL_UART_RX_PIN
+#define NRF_LOG_BACKEND_SERIAL_UART_RX_PIN 0xFFFFFFFFul
+#endif
+
+#ifndef NRF_LOG_BACKEND_SERIAL_UART_FLOW_CONTROL
+#define NRF_LOG_BACKEND_SERIAL_UART_FLOW_CONTROL 0
+#endif
+
+#ifndef NRF_LOG_BACKEND_SERIAL_UART_RTS_PIN
+#define NRF_LOG_BACKEND_SERIAL_UART_RTS_PIN  0xFFFFFFFFul
+#endif
+
+#ifndef NRF_LOG_BACKEND_SERIAL_UART_CTS_PIN
+#define NRF_LOG_BACKEND_SERIAL_UART_CTS_PIN  0xFFFFFFFFul
 #endif
 
 // <h> Log message pool - Configuration of log message pool

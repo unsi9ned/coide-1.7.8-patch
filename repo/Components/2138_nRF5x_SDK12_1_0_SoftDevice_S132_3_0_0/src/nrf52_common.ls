@@ -137,6 +137,8 @@ SECTIONS
     {
         __HeapBase = .;
         __end__ = .;
+		_end = __end__;
+		end = __end__;
         PROVIDE(end = .);
         KEEP(*(.heap*))
         __HeapLimit = .;

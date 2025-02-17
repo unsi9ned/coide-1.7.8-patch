@@ -69,7 +69,7 @@ int _lseek(int file, int ptr, int dir)
 }
 
 /*Low layer read(input) function*/
-__attribute__ ((used))
+__attribute__ ((weak))
 int _read(int file, char *ptr, int len)
 {
 
@@ -91,7 +91,7 @@ int _read(int file, char *ptr, int len)
 
 
 /*Low layer write(output) function*/
-__attribute__ ((used))
+__attribute__ ((weak))
 int _write(int file, char *ptr, int len)
 {
 
