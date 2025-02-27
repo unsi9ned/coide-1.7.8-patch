@@ -13,7 +13,11 @@ project.history
 /config/devices
 /data
 /data/*.svd
-/flash
+/flash/*.a
+/flash/*.elf
+/flash/source/*
+!/flash/SAMD21_256.elf
+!/flash/source/SAMD21G18
 /jre
 /kindeditor*
 /p2
@@ -22,7 +26,6 @@ project.history
 /logs
 /bin/*
 !/bin/ICoodat.dll
-!/bin/global.xml
 /configuration/*
 !/configuration/config.ini
 /repo/.rn/*
@@ -31,8 +34,14 @@ project.history
 /repo/Components/*/doxygen
 /repo/Drivers/*
 /repo/Examples/*
+!/repo/Examples/2043_DW1000_Test
+!/repo/Examples/2044_ex_01a_simple_tx
+!/repo/Examples/2045_ex_02a_simple_rx
 /repo/Others/*
 !/repo/Components/2128_CMSIS_Core
 !/repo/Components/2129_Startup
 !/repo/Components/2130_Arduino_Core
+!/repo/Components/2131_DW1000
+!/repo/Components/2132_SysCalls
+!/repo/Components/2133_SPI_Master
 
