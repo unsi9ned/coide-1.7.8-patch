@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 #ifndef DW1000_USE_DMA
-#define DW1000_USE_DMA              0
+#define DW1000_USE_DMA              1
 #endif
 
 #if DW1000_USE_DMA

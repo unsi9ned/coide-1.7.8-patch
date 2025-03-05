@@ -11,6 +11,7 @@
  * @author DecaWave
  */
 #include <string.h>
+#include <stdlib.h>
 #include <nrf_gpio.h>
 #include <nrf_spi.h>
 #include <nrf_spim.h>
@@ -107,56 +108,38 @@ int writetospi
 )
 {
 	decaIrqStatus_t stat;
-	const uint8_t * pTxData = headerBuffer;
-	uint8_t         dummy = 0xFF;
+	static uint8_t  dummy = 0xFF;
+	uint8_t        *txBuffer = NULL;
 
 	stat = decamutexon() ;
 
 	// CS = 0
 	nrf_gpio_pin_clear(SPIx_CS_PIN);
 
-	// Write data
-	if(headerLength)
-	{
-		nrf_spim_rx_buffer_set(SPIx, &dummy, 1);
-		nrf_spim_tx_buffer_set(SPIx, pTxData, headerLength);
+	txBuffer = malloc(headerLength + bodylength);
 
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STOPPED);
+	if(!txBuffer)
+		goto EndSpiTransaction;
 
-		nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
+	memcpy(txBuffer, headerBuffer, headerLength);
+	memcpy(txBuffer + headerLength, bodyBuffer, bodylength);
 
-		//End of transaction
-		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
-	}
+	nrf_spim_rx_buffer_set(SPIx, &dummy, 1);
+	nrf_spim_tx_buffer_set(SPIx, txBuffer, headerLength + bodylength);
 
-	// Read data
-	if(bodylength)
-	{
-		pTxData = bodyBuffer;
-		nrf_spim_rx_buffer_set(SPIx, &dummy, 1);
-		nrf_spim_tx_buffer_set(SPIx, pTxData, bodylength);
+	nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
+	nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
 
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STOPPED);
+	//End of transaction
+	while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
 
-		nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
-
-		//End of transaction
-		while(!nrf_spim_event_check(SPIx, NRF_SPIM_EVENT_END));
-	}
-
+EndSpiTransaction:
 	// CS = 1
 	nrf_gpio_pin_set(SPIx_CS_PIN);
 
 	decamutexoff(stat) ;
 
+	free(txBuffer);
 	return 0;
 }
 #endif
@@ -227,7 +210,7 @@ int readfromspi
 {
 	const uint8_t * pTxData = headerBuffer;
 	uint8_t       * pRxData = readBuffer;
-	uint8_t         dummy = 0xFF;
+	static uint8_t  dummy = 0xFF;
 	decaIrqStatus_t stat ;
 
 	if(!headerLength)
@@ -244,12 +227,7 @@ int readfromspi
 		nrf_spim_rx_buffer_set(SPIx, &dummy, 1);
 		nrf_spim_tx_buffer_set(SPIx, pTxData, headerLength);
 
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
 		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STOPPED);
-
 		nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
 
 		//End of transaction
@@ -263,12 +241,7 @@ int readfromspi
 		nrf_spim_tx_buffer_set(SPIx, &dummy, 1);
 		nrf_spim_orc_set(SPIx, 0xFF);
 
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDRX);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_ENDTX);
 		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_END);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STARTED);
-		nrf_spim_event_clear(SPIx, NRF_SPIM_EVENT_STOPPED);
-
 		nrf_spim_task_trigger(SPIx, NRF_SPIM_TASK_START);
 
 		//End of transaction
