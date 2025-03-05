@@ -2756,7 +2756,9 @@
 
 // <e> TIMER_ENABLED - nrf_drv_timer - TIMER periperal driver
 //==========================================================
-#ifndef TIMER_ENABLED
+#ifdef SDK_TIMER_ENABLE
+#define TIMER_ENABLED 1
+#else
 #define TIMER_ENABLED 0
 #endif
 // <o> TIMER_DEFAULT_CONFIG_FREQUENCY  - Timer frequency if in Timer mode
