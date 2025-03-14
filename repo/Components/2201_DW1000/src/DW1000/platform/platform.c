@@ -68,7 +68,8 @@ void port_led_toggle()
 {
 	static int init = 0;
 	init = !init ? gpio_led_init() : 1;
-	nrf_gpio_pin_write(USER_LED_PIN, !nrf_gpio_pin_read(USER_LED_PIN));
+
+	nrf_gpio_pin_toggle(USER_LED_PIN);
 }
 
 //------------------------------------------------------------------------------
