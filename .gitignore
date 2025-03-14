@@ -48,6 +48,7 @@ project.history
 !/repo/Examples/2047_helloworld
 !/repo/Examples/2048_dwm-simple
 !/repo/Examples/2049_ex_02e_rx_dbl_buff
+!/repo/Examples/2050_Delfino_Settings_manager_CSV
 /repo/Others/*
 !/repo/Components/2128_CMSIS_Core
 !/repo/Components/2129_Startup
