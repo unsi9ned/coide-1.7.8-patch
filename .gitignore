@@ -55,4 +55,5 @@ project.history
 !/repo/Components/2131_DW1000
 !/repo/Components/2132_SysCalls
 !/repo/Components/2133_SPI_Master
+!/repo/Components/*_Delfino_*/
 
