@@ -57,4 +57,6 @@ project.history
 !/repo/Components/2132_SysCalls
 !/repo/Components/2133_SPI_Master
 !/repo/Components/*_Delfino_*/
+!/repo/Components/*RTL8752H*/
+
 
