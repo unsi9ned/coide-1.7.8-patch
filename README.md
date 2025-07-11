@@ -28,7 +28,7 @@ CooCox CoIDE - это свободная среда разработки про�
 ```
 cd c:/CooCox/CoIDE
 git init
-git remote add origin https://github.com/unsi9ned/coide-1.7.8-patch.git
+git remote add origin https://gitflic.ru/project/hamlab/coide-patch.git
 git pull origin master
 git checkout -f master
 ```
