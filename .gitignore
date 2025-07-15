@@ -37,9 +37,11 @@ project.history
 /configuration/config.ini
 /repo/.rn/*
 /repo/Boards/*
+!/repo/Boards/87_NodeMCU-BU01
 /repo/Components/*
 /repo/Components/*/doxygen
 /repo/Drivers/*
+!/repo/Drivers/2126_DW1000 Device Driver
 /repo/Examples/*
 !/repo/Examples/2043_DW1000_Test
 !/repo/Examples/2044_ex_01a_simple_tx
@@ -49,6 +51,8 @@ project.history
 !/repo/Examples/2048_dwm-simple
 !/repo/Examples/2049_ex_02e_rx_dbl_buff
 !/repo/Examples/2050_Delfino_Settings_manager_CSV
+!/repo/Examples/2051_ex_01a_simple_tx
+!/repo/Examples/2052_ex_02a_simple_rx
 /repo/Others/*
 !/repo/Components/2128_CMSIS_Core
 !/repo/Components/2129_Startup
