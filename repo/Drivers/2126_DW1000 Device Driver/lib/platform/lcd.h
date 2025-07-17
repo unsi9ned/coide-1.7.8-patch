@@ -1,5 +1,5 @@
 /*! ----------------------------------------------------------------------------
- * @file    deca_spi.h
+ * @file    lcd.h
  * @brief   EVB1000 LCD screen access functions
  *
  * @attention
@@ -20,7 +20,11 @@ extern "C" {
 
 #include "deca_types.h"
 
-#define EVB1000_LCD_SUPPORT             (1)
+#define EVB1000_LCD_SUPPORT             (0)
+
+#if (EVB1000_LCD_SUPPORT == 0)
+#include <stdio.h>
+#endif
 
 #if (EVB1000_LCD_SUPPORT == 1)
 /*! ------------------------------------------------------------------------------------------------------------------
@@ -53,7 +57,7 @@ void writetoLCD
  */
 void lcd_display_str(const char *string);
 #else
-#define lcd_display_str(x)
+#define lcd_display_str(x) printf("LCD: %s\r\n", x)
 #endif
 
 #ifdef __cplusplus

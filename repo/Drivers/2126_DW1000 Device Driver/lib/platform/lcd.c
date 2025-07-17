@@ -12,7 +12,7 @@
  */
 #include <string.h>
 
-#include "deca_sleep.h"
+#include "sleep.h"
 #include "port.h"
 #include "lcd.h"
 
@@ -67,7 +67,7 @@ void writetoLCD
     port_SPIy_set_chip_select();  //CS high
 
     if(sleep)
-        deca_sleep(2);
+        sleep_ms(2);
 } // end writetoLCD()
 
 /*! ------------------------------------------------------------------------------------------------------------------

@@ -12,12 +12,9 @@
  */
 #include <string.h>
 
-#include "deca_device_api.h"
 #include "deca_spi.h"
-#include "deca_sleep.h"
 #include "deca_device_api.h"
 #include "port.h"
-
 
 /*! ------------------------------------------------------------------------------------------------------------------
  * Function: openspi()
@@ -56,13 +53,8 @@ int closespi(void)
  * Takes two separate byte buffers for write header and write data
  * returns 0 for success, or -1 for error
  */
-int writetospi
-(
-    uint16       headerLength,
-    const uint8 *headerBuffer,
-    uint32       bodylength,
-    const uint8 *bodyBuffer
-)
+#pragma GCC optimize ("O3")
+int writetospi(uint16 headerLength, const uint8 *headerBuffer, uint32 bodylength, const uint8 *bodyBuffer)
 {
 
 	int i=0;
@@ -107,14 +99,8 @@ int writetospi
  * returns the offset into read buffer where first byte of read data may be found,
  * or returns -1 if there was an error
  */
-
-int readfromspi
-(
-    uint16       headerLength,
-    const uint8 *headerBuffer,
-    uint32       readlength,
-    uint8       *readBuffer
-)
+#pragma GCC optimize ("O3")
+int readfromspi(uint16 headerLength, const uint8 *headerBuffer, uint32 readlength, uint8 *readBuffer)
 {
 
 	int i=0;
@@ -132,8 +118,7 @@ int readfromspi
     {
     	SPIx->DR = headerBuffer[i];
 
-     	//while((SPIx->SR & SPI_I2S_FLAG_RXNE) == (uint16_t)RESET);
-			while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
+     	while((SPIx->SR & SPI_I2S_FLAG_RXNE) == (uint16_t)RESET);
 
      	readBuffer[0] = SPIx->DR ; // Dummy read as we write the header
     }

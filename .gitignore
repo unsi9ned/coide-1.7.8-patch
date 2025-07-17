@@ -53,6 +53,9 @@ project.history
 !/repo/Examples/2050_Delfino_Settings_manager_CSV
 !/repo/Examples/2051_ex_01a_simple_tx
 !/repo/Examples/2052_ex_02a_simple_rx
+!/repo/Examples/205*_ex_*
+!/repo/Examples/206*_ex_*
+!/repo/Examples/207*_ex_*
 /repo/Others/*
 !/repo/Components/2128_CMSIS_Core
 !/repo/Components/2129_Startup
