@@ -16,6 +16,9 @@ CooCox CoIDE - это свободная среда разработки про�
 
 Патч включает в себя также драйверы программирования Flash для данных МК, драйвер библиотеки DW1000. 
 
+Добавлена поддержка плат:
+* NodeMCU-BU01
+
 ## Что необходимо скачать и установить
 
 1. [CooCox CoIDE версии 1.7.8](https://web.archive.org/web/20160316225510/http://www.coocox.org/download/Tools/CoIDE-1.7.8.exe) (md5: 7970ebfb154ac2de5305f10cd52324e3)
@@ -28,7 +31,7 @@ CooCox CoIDE - это свободная среда разработки про�
 ```
 cd c:/CooCox/CoIDE
 git init
-git remote add origin https://github.com/unsi9ned/coide-1.7.8-patch.git
+git remote add origin https://gitflic.ru/project/hamlab/coide-patch.git
 git pull origin master
 git checkout -f master
 ```
