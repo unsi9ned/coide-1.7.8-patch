@@ -14,7 +14,7 @@
 #include "deca_regs.h"
 #include "sleep.h"
 #include "lcd.h"
-#include "port.h"
+#include "platform.h"
 
 /* Example application name and version to display on LCD screen. */
 #define APP_NAME "TX TIME SLP v1.0"

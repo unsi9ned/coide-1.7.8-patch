@@ -17,7 +17,7 @@
 #include "deca_device_api.h"
 #include "deca_regs.h"
 #include "lcd.h"
-#include "port.h"
+#include "platform.h"
 
 #include "stdlib.h"
 
