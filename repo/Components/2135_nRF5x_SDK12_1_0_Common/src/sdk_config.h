@@ -2445,7 +2445,9 @@
 
 // <e> RTC_ENABLED - nrf_drv_rtc - RTC peripheral driver
 //==========================================================
-#ifndef RTC_ENABLED
+#ifdef SDK_RTC_ENABLE
+#define RTC_ENABLED 1
+#else
 #define RTC_ENABLED 0
 #endif
 // <o> RTC_DEFAULT_CONFIG_FREQUENCY - Frequency  <16-32768> 
@@ -2756,7 +2758,9 @@
 
 // <e> TIMER_ENABLED - nrf_drv_timer - TIMER periperal driver
 //==========================================================
-#ifndef TIMER_ENABLED
+#ifdef SDK_TIMER_ENABLE
+#define TIMER_ENABLED 1
+#else
 #define TIMER_ENABLED 0
 #endif
 // <o> TIMER_DEFAULT_CONFIG_FREQUENCY  - Timer frequency if in Timer mode
