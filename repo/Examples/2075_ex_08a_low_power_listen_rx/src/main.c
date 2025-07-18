@@ -38,7 +38,7 @@
 #include "deca_regs.h"
 #include "lcd.h"
 #include "sleep.h"
-#include "port.h"
+#include "platform.h"
 
 /* Example application name and version to display on LCD screen. */
 #define APP_NAME "LPLISTEN RX v1.1"

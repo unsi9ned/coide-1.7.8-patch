@@ -32,7 +32,7 @@
 #include "deca_regs.h"
 #include "sleep.h"
 #include "lcd.h"
-#include "port.h"
+#include "platform.h"
 #include <stdio.h>
 
 /* Example application name and version to display on LCD screen. */

@@ -20,7 +20,7 @@
 #include "deca_device_api.h"
 #include "deca_regs.h"
 #include "deca_spi.h"
-#include "port.h"
+#include "platform.h"
 #include "sleep.h"
 #include "lcd.h"
 

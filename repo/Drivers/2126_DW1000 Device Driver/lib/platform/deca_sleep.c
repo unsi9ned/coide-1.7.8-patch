@@ -13,7 +13,7 @@
 
 #include "deca_device_api.h"
 #include "sleep.h"
-#include "port.h"
+#include "platform.h"
 
 /* Wrapper function to be used by decadriver. Declared in deca_device_api.h */
 void deca_sleep(unsigned int time_ms)

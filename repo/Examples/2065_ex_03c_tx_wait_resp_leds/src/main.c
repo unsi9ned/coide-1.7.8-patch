@@ -16,7 +16,7 @@
 #include "deca_regs.h"
 #include "sleep.h"
 #include "lcd.h"
-#include "port.h"
+#include "platform.h"
 
 /* Example application name and version to display on LCD screen. */
 #define APP_NAME "TX W4R LED v1.1"

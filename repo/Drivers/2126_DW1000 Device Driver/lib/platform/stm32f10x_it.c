@@ -22,7 +22,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
-#include "port.h"
+#include "platform.h"
 
 /* Tick timer count. */
 volatile unsigned long time32_incr;
