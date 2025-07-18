@@ -19,6 +19,7 @@ CooCox CoIDE - это свободная среда разработки про�
 Добавлена поддержка плат:
 * [NodeMCU-BU01](https://hamlab.net/mcu/decawave/evalution-boards-dwm1000-bu01/#nodemcu-bu01)
 * [UWB-Feather](https://hamlab.net/mcu/decawave/evalution-boards-dwm1000-bu01/#uwb-feather)
+* [DWM1001-DEV](https://www.qorvo.com/products/p/DWM1001-DEV)
 
 ## Что необходимо скачать и установить
 
