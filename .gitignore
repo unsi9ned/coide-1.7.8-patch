@@ -39,11 +39,13 @@ project.history
 /repo/Boards/*
 !/repo/Boards/87_NodeMCU-BU01
 !/repo/Boards/88_UWB-Feather
+!/repo/Boards/89_DWM1001
 /repo/Components/*
 /repo/Components/*/doxygen
 /repo/Drivers/*
 !/repo/Drivers/2126_DW1000 Device Driver
 !/repo/Drivers/2127_DW1000 Device Driver
+!/repo/Drivers/*_DW1000 Device Driver
 /repo/Examples/*
 !/repo/Examples/2043_DW1000_Test
 !/repo/Examples/2044_ex_01a_simple_tx
