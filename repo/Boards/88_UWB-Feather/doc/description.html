@@ -1,8 +1,65 @@
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <html>
 <head>
-<meta http-equiv="refresh" content="0; url=nodemcu-bu01-specification_1_14.pdf" />
+<!--meta http-equiv="refresh" content="0; url=nodemcu-bu01-specification_1_14.pdf" /-->
 <title>Driver Document Shortcut</title>
 </head>
-<body></body>
+<body>
+
+<p><strong>Плата UWB-Feather</strong> </p>
+
+
+
+<p><a href="https://hamlab.net/mcu/decawave/evalution-boards-dwm1000-bu01/#uwb-feather">UWB-Feather</a> – это любительский проект, автором которого является Jed Hodson. Плата представлена в форм-факторе Adafruit<strong> </strong>Feather и включает в себя модуль <a href="https://hamlab.net/mcu/decawave/uwb-dwm1000-bu01/">DWM1000</a> и микроконтроллер ATSAMD21 Arm Cortex-M0.</p>
+
+
+
+<figure class="wp-block-image size-full"><img decoding="async" src="board.jpg"/></figure>
+
+
+
+<p>Основные компоненты платы:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Модуль <strong>DWM1000</strong></li>
+
+
+
+<li>Хост-контроллер <strong>ATSAMD21</strong></li>
+
+
+
+<li>Контроллер заряда батареи <strong>MCP73831</strong></li>
+
+
+
+<li>Разъем для программирования и отладки через интерфейс SWD</li>
+
+
+
+<li>Стабилизатор напряжения 3.3 В, позволяющий питать плату от USB</li>
+
+
+
+<li>Светодиоды, индицирующее режимы работы модуля DWM1000</li>
+</ul>
+
+
+
+<p>Распиновка платы совместима с Adafruit M0 Feather. Питание может осуществляться как от батареи, так и от USB-разъема. Программирование выполняется с помощью программатора через SWD или через USB, если используется соответствующий загрузчик (например uf2-samdx1 от Microsoft).</p>
+
+
+
+<p>Для данной платы не существует ПО, с помощью которого можно запускать готовую RTLS-систему. Максимум, что можно быстро протестировать на ней – это Arduino-проекты на базе библиотеки <a href="https://github.com/thotro/arduino-dw1000" target="_blank" rel="noreferrer noopener">arduino-dw1000</a> от автора thotro. Jed Hodson в своей статье «<a href="https://www.hackster.io/jedhodson/uwb-localization-feather-7e1312" target="_blank" rel="noreferrer noopener">UWB Localization Feather</a>» приводит полную инструкцию по изготовлению печатной платы, программированию загрузчика bootloader-feather_m0-v3.7.0 с помощью J-Link и запуске тестового проекта DW1000-Anchor. Программа DW1000-Anchor позволяет измерять расстояние между двумя устройствами UWB-Feather, одно из которых работает в режиме маяка, а второе – в режиме метки. <a href="https://github.com/prototyping-corner/UWB-Feather" target="_blank" rel="noreferrer noopener">В официальном репозитории проекта UWB-Feather</a> можно найти всю необходимую документацию и файлы для самостоятельного изготовления платы.</p>
+
+
+<p>
+<a href="UWB_Feather_Schematic.pdf">Схема платы UWB_Feather_Schematic.pdf</a>
+</p>
+
+
+
+</body>
 </html>
