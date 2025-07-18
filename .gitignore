@@ -45,7 +45,7 @@ project.history
 /repo/Drivers/*
 !/repo/Drivers/2126_DW1000 Device Driver
 !/repo/Drivers/2127_DW1000 Device Driver
-!/repo/Drivers/2128_DW1000 Device Driver
+!/repo/Drivers/*_DW1000 Device Driver
 /repo/Examples/*
 !/repo/Examples/2043_DW1000_Test
 !/repo/Examples/2044_ex_01a_simple_tx
