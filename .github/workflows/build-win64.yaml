@@ -1,0 +1,175 @@
+name: Build CoIDE Release
+
+on:
+  workflow_dispatch:  # Ручной запуск
+  push:
+    tags:
+      - 'v*'          # Автоматический запуск при тегах v1.0, v2.0 и т.д.
+
+defaults:
+  run:
+    shell: cmd
+
+env:
+  COIDE_VERSION: "1.7.8"
+  INSTALL_DIR:   "C:\\CooCox\\CoIDE"
+
+jobs:
+  build:
+    runs-on:  windows-2019
+
+    steps:
+      - name: (1) Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: 'patcher'
+
+      - name: (2) Create installation directory
+        run: |
+            echo Creating installation directory...
+            if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
+            echo Directory created: %INSTALL_DIR%
+            
+      - name: (3) Download CoIDE installer
+        run: |
+            :: Удаляем старый файл если есть
+            if exist "CoIDE-%COIDE_VERSION%.exe" del "CoIDE-%COIDE_VERSION%.exe"
+            
+            echo Downloading CoIDE %COIDE_VERSION%...
+            curl -L --connect-timeout 120 --max-time 600 -o "CoIDE-%COIDE_VERSION%.exe" "https://github.com/unsi9ned/coide-1.7.8-patch/releases/download/CoIDE-1.7.8/CoIDE-1.7.8.exe"
+            
+            :: Проверяем скачанный файл
+            if exist "CoIDE-%COIDE_VERSION%.exe" (
+                echo Downloaded: CoIDE-%COIDE_VERSION%.exe
+            ) else (
+                echo Download failed!
+                exit /b 1
+            )        
+
+      - name: (4) Install CoIDE silently (blocking)
+        run: |
+            echo Installing CoIDE %COIDE_VERSION%...
+            echo Please wait, this may take a few minutes...
+            
+            :: Используем start /wait для блокировки
+            start /wait "" "CoIDE-%COIDE_VERSION%.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="%INSTALL_DIR%" /NOICONS
+            
+            :: Проверяем результат установки
+            if %ERRORLEVEL% EQU 0 (
+                echo CoIDE installed successfully
+            ) else (
+                echo Installation failed with error: %ERRORLEVEL%
+                exit /b 1
+            )            
+
+      - name: (5) Apply patches from repository
+        run: |
+            echo Applying patches from repository...
+            
+            :: Переходим в папку с установленной CoIDE
+            cd /d "%INSTALL_DIR%"
+            
+            :: Инициализируем git репозиторий
+            git init
+            
+            :: Добавляем remote с патчами (из папки patcher)
+            git remote add origin https://github.com/unsi9ned/coide-1.7.8-patch.git
+            
+            :: Получаем и применяем патчи
+            git fetch origin
+            git checkout -f origin/master
+            
+            :: Проверяем результат
+            if %ERRORLEVEL% EQU 0 (
+                echo ✓ Patches applied successfully
+                
+                :: Показываем измененные файлы
+                echo.
+                echo Applied changes:
+                git status --porcelain
+            ) else (
+                echo Failed to apply patches
+                exit /b 1
+            )
+            
+            :: Очищаем git репозиторий
+            rmdir /s /q .git 2>nul
+      - name: (6) Prepare release name
+        run:  |
+            echo Time: %TIME%
+            echo Date: %DATE%
+            
+            :: Разделяем время и дату
+            for /f "tokens=1-3 delims=: " %%a in ("%TIME%") do (
+                set HH=%%a
+                set MM=%%b
+                set SS_AND_REST=%%c
+            )
+            
+            :: Теперь разбираем оставшуюся часть
+            for /f "tokens=1-4 delims=/. " %%a in ("%DATE%") do (
+                set DW=%%a
+                set MN=%%b
+                set DD=%%c
+                set YR=%%d
+            )
+            
+            :: Убираем ведущие пробелы у часов
+            set HH=%HH: =0%
+            
+            :: Создаем имя файла с timestamp
+            set BUILD_TIMESTAMP=%YR%%MN%%DD%_%HH%%MM%
+            set ARTIFACT_NAME=CoIDE-%COIDE_VERSION%-portable-%BUILD_TIMESTAMP%
+            echo Artifact name: %ARTIFACT_NAME%
+            
+            echo BUILD_TIMESTAMP=%BUILD_TIMESTAMP% >> %GITHUB_ENV%
+            echo ARTIFACT_NAME=%ARTIFACT_NAME% >> %GITHUB_ENV%
+            
+            :: Извлекаем версию из тега v1.0.0 -> 1.0.0
+            set VERSION=%GITHUB_REF_NAME%
+            set VERSION=%VERSION:v=%
+            echo "VERSION=%VERSION%" >> %GITHUB_ENV%
+        
+      - name: (7) Create portable ZIP archive
+        if: startsWith(github.ref, 'refs/tags/')
+        run:  |
+            set ZIP_FILE=CoIDE-%COIDE_VERSION%-portable-${{ github.ref_name }}.zip
+            echo ZIP filename: %ZIP_FILE%
+            echo ZIP_FILE=%ZIP_FILE% >> %GITHUB_ENV%
+            
+            cd "%INSTALL_DIR%"
+            7z a %ZIP_FILE% %INSTALL_DIR%\* -r 
+            move %ZIP_FILE% %GITHUB_WORKSPACE%\%ZIP_FILE%
+            cd "%GITHUB_WORKSPACE%"
+            
+            echo "Путь к архиву сборки:"
+            echo "%cd%\%ZIP_FILE%"         
+
+      - name: (8) Upload portable build as artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.INSTALL_DIR }}           
+          retention-days: 30              
+
+      - name: (9) Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+            files: ${{ env.ZIP_FILE }}
+            name: "coide-patch-${{ github.ref_name }}"
+            tag_name: ${{ github.ref_name }}
+            body: |
+              **Based on:** CoIDE ${{ env.COIDE_VERSION }}
+              **Build:** ${{ env.BUILD_TIMESTAMP }}
+              
+              ### How to Use
+              1. Download `${{ env.ZIP_FILE }}`
+              2. Extract to any folder
+              3. Run `CoIDE.exe`
+              
+              ### Build Information
+              - Source repository: https://github.com/${{ github.repository }}
+              - Commit: ${{ github.sha }}
