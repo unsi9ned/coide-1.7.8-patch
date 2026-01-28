@@ -23,7 +23,7 @@ CooCox CoIDE - это свободная среда разработки про�
 
 ## Что необходимо скачать и установить
 
-1. [CooCox CoIDE версии 1.7.8](https://github.com/unsi9ned/coide-1.7.8-patch.git) (md5: 7970ebfb154ac2de5305f10cd52324e3)
+1. [CooCox CoIDE версии 1.7.8](https://github.com/unsi9ned/coide-1.7.8-patch/releases/download/CoIDE-1.7.8/CoIDE-1.7.8.exe) (md5: 7970ebfb154ac2de5305f10cd52324e3)
 2. GCC Toolchain [gcc-arm-none-eabi-10.3-2021.10](https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.exe) (можно и новее, но тестирование производилось на данной версии)
 3. [Git for Windows](https://git-scm.com/downloads/win)
 
